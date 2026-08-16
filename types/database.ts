@@ -540,6 +540,16 @@ export interface PortfolioProject {
   updated_at: string;
 }
 
+export interface GithubConnection {
+  user_id: string;
+  github_username: string;
+  avatar_url: string | null;
+  public_repos: number | null;
+  followers: number | null;
+  connected_at: string;
+  last_synced_at: string | null;
+}
+
 export interface CalendarEvent {
   id: string;
   user_id: string;
