@@ -40,7 +40,7 @@ export function CertificationsPageClient({ certifications }: { certifications: C
             const expiringSoon =
               cert.expiration_date &&
               new Date(cert.expiration_date) > new Date() &&
-              new Date(cert.expiration_date).getTime() - Date.now() < 60 * 86400000;
+              new Date(cert.expiration_date).getTime() - new Date().getTime() < 60 * 86400000;
             const expired = cert.expiration_date && new Date(cert.expiration_date) < new Date();
 
             return (
@@ -83,7 +83,7 @@ export function CertificationsPageClient({ certifications }: { certifications: C
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add certification</DialogTitle>
-            <DialogDescription>Keep track of what you've earned.</DialogDescription>
+            <DialogDescription>Keep track of what you&apos;ve earned.</DialogDescription>
           </DialogHeader>
           <form
             action={async (formData) => {

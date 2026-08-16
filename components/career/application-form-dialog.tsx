@@ -29,7 +29,7 @@ export function ApplicationFormDialog({ open, onOpenChange }: { open: boolean; o
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Add application</DialogTitle>
-          <DialogDescription>Track a role you're applying to or already applied for.</DialogDescription>
+          <DialogDescription>Track a role you&apos;re applying to or already applied for.</DialogDescription>
         </DialogHeader>
         <form action={formAction} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">

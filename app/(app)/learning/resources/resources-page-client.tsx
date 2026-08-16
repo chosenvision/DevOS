@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { ExternalLink, Plus, Star, Trash2 } from "lucide-react";
 
@@ -15,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
-import { createResource, updateResourceStatus, deleteResource, type ActionState } from "@/services/actions/learning";
+import { createResource, updateResourceStatus, deleteResource } from "@/services/actions/learning";
 import type { Resource, ResourceStatus } from "@/types/database";
 
 const STATUS_LABEL: Record<ResourceStatus, string> = {
@@ -25,19 +24,21 @@ const STATUS_LABEL: Record<ResourceStatus, string> = {
   saved_for_later: "Saved for later",
 };
 
-const initialState: ActionState = {};
-
 export function ResourcesPageClient({ resources }: { resources: Resource[] }) {
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState<string>("all");
-  const [state, formAction] = useActionState(createResource, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createResource({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   const filtered = filter === "all" ? resources : resources.filter((r) => r.status === filter);
 
@@ -137,7 +138,7 @@ export function ResourcesPageClient({ resources }: { resources: Resource[] }) {
               <Label htmlFor="r-desc">Description</Label>
               <Textarea id="r-desc" name="description" rows={2} />
             </div>
-            {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <SubmitButton>Save resource</SubmitButton>
           </form>
         </DialogContent>

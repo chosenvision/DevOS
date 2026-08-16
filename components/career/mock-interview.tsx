@@ -21,16 +21,11 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function MockInterview({ questions }: { questions: InterviewQuestion[] }) {
-  const [order, setOrder] = React.useState<InterviewQuestion[]>([]);
+  const [order, setOrder] = React.useState<InterviewQuestion[]>(() => shuffle(questions));
   const [index, setIndex] = React.useState(0);
   const [showAnswer, setShowAnswer] = React.useState(false);
   const [seconds, setSeconds] = React.useState(0);
   const [marked, setMarked] = React.useState<Set<string>>(new Set());
-
-  React.useEffect(() => {
-    setOrder(shuffle(questions));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questions.length]);
 
   React.useEffect(() => {
     const id = setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -62,9 +57,16 @@ export function MockInterview({ questions }: { questions: InterviewQuestion[] })
     <div className="mx-auto max-w-xl space-y-4">
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>Question {index + 1} of {order.length}</span>
-        <span className="flex items-center gap-1 font-mono tabular-nums">
-          <Timer className="size-3.5" /> {String(Math.floor(seconds / 60)).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}
-        </span>
+        <div className="flex items-center gap-3">
+          {marked.size > 0 && (
+            <span className="flex items-center gap-1 text-xs">
+              <Flag className="size-3" /> {marked.size} marked
+            </span>
+          )}
+          <span className="flex items-center gap-1 font-mono tabular-nums">
+            <Timer className="size-3.5" /> {String(Math.floor(seconds / 60)).padStart(2, "0")}:{String(seconds % 60).padStart(2, "0")}
+          </span>
+        </div>
       </div>
 
       <Card className="py-6">

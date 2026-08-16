@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Contact as ContactIcon, Plus, Trash2 } from "lucide-react";
 
@@ -20,22 +19,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
-import { createContact, deleteContact, markContacted, setFollowUp, type ActionState } from "@/services/actions/companies";
+import { createContact, deleteContact, markContacted, setFollowUp } from "@/services/actions/companies";
 import { formatShortDate } from "@/lib/utils";
 import type { Contact } from "@/types/database";
 
-const initialState: ActionState = {};
-
 export function ContactsPageClient({ contacts }: { contacts: Contact[] }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createContact, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createContact({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   return (
     <div className="space-y-4">
@@ -48,7 +49,7 @@ export function ContactsPageClient({ contacts }: { contacts: Contact[] }) {
       {contacts.length === 0 ? (
         <EmptyState
           title="No contacts yet."
-          description="Keep track of recruiters, referrals, and people you've networked with."
+          description="Keep track of recruiters, referrals, and people you&apos;ve networked with."
           actionLabel="Add contact"
           onAction={() => setOpen(true)}
           icon={ContactIcon}
@@ -135,7 +136,7 @@ export function ContactsPageClient({ contacts }: { contacts: Contact[] }) {
               <Label htmlFor="ct-notes">Notes</Label>
               <Textarea id="ct-notes" name="notes" rows={2} />
             </div>
-            {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <SubmitButton>Add contact</SubmitButton>
           </form>
         </DialogContent>

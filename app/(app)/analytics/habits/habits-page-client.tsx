@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Flame, Plus, Trash2 } from "lucide-react";
 
@@ -14,22 +13,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { HabitHeatmap } from "@/components/analytics/habit-heatmap";
-import { createHabit, toggleHabitToday, deleteHabit, type ActionState } from "@/services/actions/habits";
+import { createHabit, toggleHabitToday, deleteHabit } from "@/services/actions/habits";
 import type { HabitWithStats } from "@/services/queries/habits";
-
-const initialState: ActionState = {};
 
 export function HabitsPageClient({ habits }: { habits: HabitWithStats[] }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createHabit, initialState);
+  const [error, setError] = React.useState<string>();
   const today = new Date().toISOString().slice(0, 10);
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createHabit({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   if (habits.length === 0) {
     return (
@@ -41,7 +42,7 @@ export function HabitsPageClient({ habits }: { habits: HabitWithStats[] }) {
           onAction={() => setOpen(true)}
           icon={Flame}
         />
-        <HabitDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+        <HabitDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
       </>
     );
   }
@@ -84,7 +85,7 @@ export function HabitsPageClient({ habits }: { habits: HabitWithStats[] }) {
         })}
       </div>
 
-      <HabitDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+      <HabitDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
     </div>
   );
 }
@@ -93,12 +94,12 @@ function HabitDialog({
   open,
   onOpenChange,
   formAction,
-  state,
+  error,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formAction: (formData: FormData) => void;
-  state: ActionState;
+  error?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,7 +130,7 @@ function HabitDialog({
               </Select>
             </div>
           </div>
-          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full">Add habit</Button>
         </form>
       </DialogContent>

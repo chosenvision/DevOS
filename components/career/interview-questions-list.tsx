@@ -1,21 +1,19 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
-import { createInterviewQuestion, deleteInterviewQuestion, type ActionState } from "@/services/actions/interview-prep";
+import { createInterviewQuestion, deleteInterviewQuestion } from "@/services/actions/interview-prep";
 import { DIFFICULTY_LABEL } from "@/lib/constants";
 import type { InterviewCategory, InterviewQuestion } from "@/types/database";
 
@@ -30,19 +28,21 @@ const CATEGORY_LABEL: Record<InterviewCategory, string> = {
   company_specific: "Company Specific",
 };
 
-const initialState: ActionState = {};
-
 export function InterviewQuestionsList({ questions }: { questions: InterviewQuestion[] }) {
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState<string>("all");
-  const [state, formAction] = useActionState(createInterviewQuestion, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createInterviewQuestion({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   const filtered = filter === "all" ? questions : questions.filter((q) => q.category === filter);
 
@@ -129,7 +129,7 @@ export function InterviewQuestionsList({ questions }: { questions: InterviewQues
               <Label htmlFor="iq-notes">Notes</Label>
               <Textarea id="iq-notes" name="notes" rows={2} />
             </div>
-            {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <SubmitButton>Add question</SubmitButton>
           </form>
         </DialogContent>

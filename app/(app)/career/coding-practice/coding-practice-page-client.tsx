@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { ExternalLink, Plus, Trash2 } from "lucide-react";
 
@@ -15,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
-import { createCodingProblem, markProblemAttempted, deleteCodingProblem, type ActionState } from "@/services/actions/coding-practice";
+import { createCodingProblem, markProblemAttempted, deleteCodingProblem } from "@/services/actions/coding-practice";
 import { CODING_PLATFORMS, DIFFICULTY_LABEL } from "@/lib/constants";
 import { formatShortDate } from "@/lib/utils";
 import type { CodingProblem, DifficultyLevel } from "@/types/database";
@@ -26,7 +25,6 @@ const DIFFICULTY_BADGE: Record<DifficultyLevel, "muted" | "warning" | "destructi
   hard: "destructive",
 };
 
-const initialState: ActionState = {};
 
 function ProblemCard({ problem }: { problem: CodingProblem }) {
   return (
@@ -74,14 +72,18 @@ function ProblemCard({ problem }: { problem: CodingProblem }) {
 
 export function CodingPracticePageClient({ problems }: { problems: CodingProblem[] }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createCodingProblem, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createCodingProblem({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   const dueForReview = problems.filter((p) => p.review_date && new Date(p.review_date) <= new Date());
   const todo = problems.filter((p) => p.status !== "completed");
@@ -170,7 +172,7 @@ export function CodingPracticePageClient({ problems }: { problems: CodingProblem
               <Label htmlFor="cp-topic">Topics</Label>
               <Input id="cp-topic" name="topic" placeholder="Arrays, Hash Maps" />
             </div>
-            {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <SubmitButton>Add problem</SubmitButton>
           </form>
         </DialogContent>

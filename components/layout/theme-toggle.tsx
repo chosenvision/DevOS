@@ -16,7 +16,13 @@ export function ThemeToggle() {
   const { setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => setMounted(true), []);
+  React.useEffect(() => {
+    // Deliberate: this must stay false through the first client render so it
+    // matches the server-rendered markup exactly, then flip once mounted —
+    // there's no pure alternative for "is this the post-hydration client?".
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   return (
     <DropdownMenu>

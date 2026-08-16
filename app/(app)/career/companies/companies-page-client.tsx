@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Building2, ExternalLink, Plus, Trash2 } from "lucide-react";
 
@@ -13,21 +12,23 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
-import { createCompany, deleteCompany, type ActionState } from "@/services/actions/companies";
+import { createCompany, deleteCompany } from "@/services/actions/companies";
 import type { Company } from "@/types/database";
-
-const initialState: ActionState = {};
 
 export function CompaniesPageClient({ companies }: { companies: Company[] }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createCompany, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createCompany({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   return (
     <div className="space-y-4">
@@ -40,7 +41,7 @@ export function CompaniesPageClient({ companies }: { companies: Company[] }) {
       {companies.length === 0 ? (
         <EmptyState
           title="No companies tracked yet."
-          description="Research companies you're interested in and keep notes here."
+          description="Research companies you&apos;re interested in and keep notes here."
           actionLabel="Add company"
           onAction={() => setOpen(true)}
           icon={Building2}
@@ -77,7 +78,7 @@ export function CompaniesPageClient({ companies }: { companies: Company[] }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add company</DialogTitle>
-            <DialogDescription>Keep research notes on a company you're interested in.</DialogDescription>
+            <DialogDescription>Keep research notes on a company you&apos;re interested in.</DialogDescription>
           </DialogHeader>
           <form action={formAction} className="space-y-4">
             <div className="space-y-1.5">
@@ -108,7 +109,7 @@ export function CompaniesPageClient({ companies }: { companies: Company[] }) {
               <Label htmlFor="co-notes">Notes</Label>
               <Textarea id="co-notes" name="notes" rows={2} />
             </div>
-            {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <SubmitButton>Add company</SubmitButton>
           </form>
         </DialogContent>

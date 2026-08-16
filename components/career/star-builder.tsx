@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -13,21 +12,23 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
-import { createStarResponse, deleteStarResponse, type ActionState } from "@/services/actions/interview-prep";
+import { createStarResponse, deleteStarResponse } from "@/services/actions/interview-prep";
 import type { StarResponse } from "@/types/database";
-
-const initialState: ActionState = {};
 
 export function StarBuilder({ responses }: { responses: StarResponse[] }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createStarResponse, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createStarResponse({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   return (
     <div className="space-y-4">
@@ -92,7 +93,7 @@ export function StarBuilder({ responses }: { responses: StarResponse[] }) {
               <Label htmlFor="star-result">Result</Label>
               <Textarea id="star-result" name="result" rows={2} />
             </div>
-            {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <SubmitButton>Save response</SubmitButton>
           </form>
         </DialogContent>

@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Check, Copy, Plus, Search, Star, Trash2 } from "lucide-react";
 
@@ -15,12 +14,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { CodeBlock } from "@/components/notes/code-block";
-import { createSnippet, toggleSnippetFavorite, deleteSnippet, type ActionState } from "@/services/actions/snippets";
+import { createSnippet, toggleSnippetFavorite, deleteSnippet } from "@/services/actions/snippets";
 import type { CodeSnippet } from "@/types/database";
 
 const LANGUAGES = ["JavaScript", "TypeScript", "Python", "PHP", "SQL", "HTML", "CSS", "Java", "C++", "Shell", "JSON"];
-
-const initialState: ActionState = {};
 
 function SnippetCard({ snippet }: { snippet: CodeSnippet }) {
   const [copied, setCopied] = React.useState(false);
@@ -75,14 +72,18 @@ export function SnippetsPageClient({ snippets }: { snippets: CodeSnippet[] }) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [lang, setLang] = React.useState("all");
-  const [state, formAction] = useActionState(createSnippet, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createSnippet({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   const filtered = snippets.filter((s) => {
     if (lang !== "all" && s.language !== lang) return false;
@@ -94,7 +95,7 @@ export function SnippetsPageClient({ snippets }: { snippets: CodeSnippet[] }) {
     return (
       <>
         <EmptyState title="No snippets saved yet." description="Save reusable code you reach for often." actionLabel="New snippet" onAction={() => setOpen(true)} />
-        <SnippetDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+        <SnippetDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
       </>
     );
   }
@@ -126,7 +127,7 @@ export function SnippetsPageClient({ snippets }: { snippets: CodeSnippet[] }) {
         ))}
       </div>
 
-      <SnippetDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+      <SnippetDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
     </div>
   );
 }
@@ -135,12 +136,12 @@ function SnippetDialog({
   open,
   onOpenChange,
   formAction,
-  state,
+  error,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formAction: (formData: FormData) => void;
-  state: ActionState;
+  error?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -181,7 +182,7 @@ function SnippetDialog({
               <Input id="sn-tags" name="tags" placeholder="react, utils" />
             </div>
           </div>
-          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full">Save snippet</Button>
         </form>
       </DialogContent>

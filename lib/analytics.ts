@@ -10,7 +10,7 @@ export function computeCurrentStreak(dates: string[]): number {
   if (daySet.size === 0) return 0;
 
   const today = new Date();
-  let cursor = new Date(today);
+  const cursor = new Date(today);
 
   if (!daySet.has(toDateKey(cursor))) {
     cursor.setDate(cursor.getDate() - 1);

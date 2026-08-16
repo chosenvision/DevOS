@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Bookmark as BookmarkIcon, ExternalLink, Plus, Trash2 } from "lucide-react";
 
@@ -12,28 +11,30 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
-import { createBookmark, deleteBookmark, type ActionState } from "@/services/actions/snippets";
+import { createBookmark, deleteBookmark } from "@/services/actions/snippets";
 import { formatShortDate } from "@/lib/utils";
 import type { Bookmark } from "@/types/database";
 
-const initialState: ActionState = {};
-
 export function BookmarksPageClient({ bookmarks }: { bookmarks: Bookmark[] }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createBookmark, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createBookmark({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   if (bookmarks.length === 0) {
     return (
       <>
         <EmptyState title="No bookmarks yet." description="Save links you want to read or reference later." actionLabel="Save bookmark" onAction={() => setOpen(true)} icon={BookmarkIcon} />
-        <BookmarkDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+        <BookmarkDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
       </>
     );
   }
@@ -64,7 +65,7 @@ export function BookmarksPageClient({ bookmarks }: { bookmarks: Bookmark[] }) {
           </Card>
         ))}
       </div>
-      <BookmarkDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+      <BookmarkDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
     </div>
   );
 }
@@ -73,12 +74,12 @@ function BookmarkDialog({
   open,
   onOpenChange,
   formAction,
-  state,
+  error,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formAction: (formData: FormData) => void;
-  state: ActionState;
+  error?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,7 +101,7 @@ function BookmarkDialog({
             <Label htmlFor="bm-category">Category</Label>
             <Input id="bm-category" name="category" placeholder="Article" />
           </div>
-          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full">Save bookmark</Button>
         </form>
       </DialogContent>

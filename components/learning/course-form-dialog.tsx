@@ -17,7 +17,7 @@ export function CourseFormDialog({ open, onOpenChange }: { open: boolean; onOpen
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add course</DialogTitle>
-          <DialogDescription>Track something you're learning from any platform.</DialogDescription>
+          <DialogDescription>Track something you&apos;re learning from any platform.</DialogDescription>
         </DialogHeader>
         <form
           action={async (formData) => {

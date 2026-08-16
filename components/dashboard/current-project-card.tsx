@@ -31,7 +31,7 @@ export function CurrentProjectCard({ data }: { data: CurrentProjectData | null }
 
   const { project, tasksRemaining, tasksTotal, currentMilestone } = data;
   const daysRemaining = project.deadline
-    ? Math.ceil((new Date(project.deadline).getTime() - Date.now()) / 86400000)
+    ? Math.ceil((new Date(project.deadline).getTime() - new Date().getTime()) / 86400000)
     : null;
 
   return (

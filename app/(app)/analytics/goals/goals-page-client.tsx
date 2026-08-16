@@ -1,13 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Minus, Plus, Target, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
-import { createGoal, updateGoalProgress, deleteGoal, type ActionState } from "@/services/actions/habits";
+import { createGoal, updateGoalProgress, deleteGoal } from "@/services/actions/habits";
 import { GOAL_STATUS_LABEL } from "@/lib/constants";
 import { formatShortDate } from "@/lib/utils";
 import type { Goal, GoalPeriod } from "@/types/database";
@@ -27,8 +25,6 @@ const PERIOD_LABEL: Record<GoalPeriod, string> = {
   quarterly: "Quarterly",
   yearly: "Yearly",
 };
-
-const initialState: ActionState = {};
 
 function GoalCard({ goal }: { goal: Goal }) {
   return (
@@ -66,20 +62,24 @@ function GoalCard({ goal }: { goal: Goal }) {
 
 export function GoalsPageClient({ goals }: { goals: Goal[] }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createGoal, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createGoal({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   if (goals.length === 0) {
     return (
       <>
         <EmptyState title="No goals set yet." description="Set weekly, monthly, quarterly, or yearly goals." actionLabel="New goal" onAction={() => setOpen(true)} icon={Target} />
-        <GoalDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+        <GoalDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
       </>
     );
   }
@@ -111,7 +111,7 @@ export function GoalsPageClient({ goals }: { goals: Goal[] }) {
         </div>
       </Tabs>
 
-      <GoalDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+      <GoalDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
     </div>
   );
 }
@@ -120,12 +120,12 @@ function GoalDialog({
   open,
   onOpenChange,
   formAction,
-  state,
+  error,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formAction: (formData: FormData) => void;
-  state: ActionState;
+  error?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -160,7 +160,7 @@ function GoalDialog({
               <Input id="g-deadline" name="deadline" type="date" />
             </div>
           </div>
-          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full">Create goal</Button>
         </form>
       </DialogContent>

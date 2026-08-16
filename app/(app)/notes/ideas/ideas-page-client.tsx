@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { ArrowRight, Lightbulb, Plus } from "lucide-react";
 
@@ -15,7 +14,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { KanbanBoard, type KanbanColumn } from "@/components/shared/kanban-board";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { createIdea, updateIdeaStatus, convertIdeaToProject, type ActionState } from "@/services/actions/ideas";
+import { createIdea, updateIdeaStatus, convertIdeaToProject } from "@/services/actions/ideas";
 import { IDEA_STATUS_LABEL, DIFFICULTY_LABEL } from "@/lib/constants";
 import type { Idea, IdeaStatus } from "@/types/database";
 
@@ -24,24 +23,26 @@ const COLUMNS: KanbanColumn[] = (Object.keys(IDEA_STATUS_LABEL) as IdeaStatus[])
   label: IDEA_STATUS_LABEL[s],
 }));
 
-const initialState: ActionState = {};
-
 export function IdeasPageClient({ ideas }: { ideas: Idea[] }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createIdea, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createIdea({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   if (ideas.length === 0) {
     return (
       <>
         <EmptyState title="No ideas captured yet." description="Quickly jot down anything worth building later." actionLabel="Capture idea" onAction={() => setOpen(true)} icon={Lightbulb} />
-        <IdeaDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+        <IdeaDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
       </>
     );
   }
@@ -83,7 +84,7 @@ export function IdeasPageClient({ ideas }: { ideas: Idea[] }) {
         )}
       />
 
-      <IdeaDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+      <IdeaDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
     </div>
   );
 }
@@ -92,12 +93,12 @@ function IdeaDialog({
   open,
   onOpenChange,
   formAction,
-  state,
+  error,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formAction: (formData: FormData) => void;
-  state: ActionState;
+  error?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -136,7 +137,7 @@ function IdeaDialog({
             <Label htmlFor="idea-tech">Tech stack</Label>
             <Input id="idea-tech" name="techStack" placeholder="React, Supabase" />
           </div>
-          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full">Capture idea</Button>
         </form>
       </DialogContent>

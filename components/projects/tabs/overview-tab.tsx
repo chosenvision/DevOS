@@ -19,7 +19,7 @@ export function OverviewTab({ detail }: { detail: ProjectDetail }) {
   const { project, tasks, milestones } = detail;
   const completedTasks = tasks.filter((t) => t.status === "completed").length;
   const daysRemaining = project.deadline
-    ? Math.ceil((new Date(project.deadline).getTime() - Date.now()) / 86400000)
+    ? Math.ceil((new Date(project.deadline).getTime() - new Date().getTime()) / 86400000)
     : null;
   const health = healthLabel(detail);
 

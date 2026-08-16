@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
@@ -15,15 +14,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { EmptyState } from "@/components/shared/empty-state";
 import { createClient } from "@/lib/supabase/client";
-import { createNote, type ActionState } from "@/services/actions/notes";
+import { createNote } from "@/services/actions/notes";
 import { formatShortDate, truncate } from "@/lib/utils";
 import type { Note } from "@/types/database";
 
-const initialState: ActionState = {};
-
 export function NotesTab({ projectId }: { projectId: string }) {
   const [open, setOpen] = React.useState(false);
-  const [state, formAction] = useActionState(createNote, initialState);
+  const [error, setError] = React.useState<string>();
 
   const { data: notes = [], refetch } = useQuery({
     queryKey: ["project-notes", projectId],
@@ -38,13 +35,17 @@ export function NotesTab({ projectId }: { projectId: string }) {
     },
   });
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
-      refetch();
+  async function formAction(formData: FormData) {
+    const res = await createNote({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state, refetch]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+    refetch();
+  }
 
   return (
     <div className="space-y-4">
@@ -94,7 +95,7 @@ export function NotesTab({ projectId }: { projectId: string }) {
               <Label htmlFor="n-content">Content</Label>
               <Textarea id="n-content" name="content" rows={5} />
             </div>
-            {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full">Create note</Button>
           </form>
         </DialogContent>

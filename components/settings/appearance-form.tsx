@@ -17,7 +17,13 @@ export function AppearanceForm() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
-  React.useEffect(() => setMounted(true), []);
+  React.useEffect(() => {
+    // Deliberate: stays false through the first client render so it matches
+    // server-rendered markup (theme is unknown server-side), then flips once
+    // mounted — there's no pure alternative for this hydration guard.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   return (
     <Card className="py-4">

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useActionState, useEffect } from "react";
 import { toast } from "sonner";
 import { Pin, Plus, Search, Star } from "lucide-react";
 
@@ -15,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
-import { createNote, type ActionState } from "@/services/actions/notes";
+import { createNote } from "@/services/actions/notes";
 import { formatShortDate, truncate } from "@/lib/utils";
 import type { Note, NoteType } from "@/types/database";
 
@@ -29,20 +28,22 @@ const TYPE_LABEL: Record<NoteType, string> = {
   idea: "Idea",
 };
 
-const initialState: ActionState = {};
-
 export function NotesPageClient({ notes }: { notes: Note[] }) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [type, setType] = React.useState("all");
-  const [state, formAction] = useActionState(createNote, initialState);
+  const [error, setError] = React.useState<string>();
 
-  useEffect(() => {
-    if (state.success) {
-      toast.success(state.success);
-      setOpen(false);
+  async function formAction(formData: FormData) {
+    const res = await createNote({}, formData);
+    if (res.error) {
+      setError(res.error);
+      return;
     }
-  }, [state]);
+    setError(undefined);
+    toast.success(res.success);
+    setOpen(false);
+  }
 
   const active = notes.filter((n) => !n.is_archived);
   const filtered = active.filter((n) => {
@@ -60,7 +61,7 @@ export function NotesPageClient({ notes }: { notes: Note[] }) {
           actionLabel="New note"
           onAction={() => setOpen(true)}
         />
-        <NoteDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+        <NoteDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
       </>
     );
   }
@@ -113,7 +114,7 @@ export function NotesPageClient({ notes }: { notes: Note[] }) {
         </div>
       )}
 
-      <NoteDialog open={open} onOpenChange={setOpen} formAction={formAction} state={state} />
+      <NoteDialog open={open} onOpenChange={setOpen} formAction={formAction} error={error} />
     </div>
   );
 }
@@ -122,12 +123,12 @@ function NoteDialog({
   open,
   onOpenChange,
   formAction,
-  state,
+  error,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   formAction: (formData: FormData) => void;
-  state: ActionState;
+  error?: string;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -160,7 +161,7 @@ function NoteDialog({
             <Label htmlFor="note-tags">Tags</Label>
             <Input id="note-tags" name="tags" placeholder="ideas, meeting" />
           </div>
-          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full">Create note</Button>
         </form>
       </DialogContent>

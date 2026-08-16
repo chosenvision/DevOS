@@ -8,11 +8,10 @@ import { useUIStore } from "@/lib/stores/ui-store";
 import { Plus } from "lucide-react";
 
 export function WelcomeHeader({ name }: { name: string }) {
-  const [now, setNow] = React.useState<Date | null>(null);
+  const [now, setNow] = React.useState(() => new Date());
   const openQuickAdd = useUIStore((s) => s.openQuickAdd);
 
   React.useEffect(() => {
-    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
@@ -25,11 +24,9 @@ export function WelcomeHeader({ name }: { name: string }) {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{getMotivationalMessage()}</p>
         <p className="mt-1 text-xs text-muted-foreground/70 tabular-nums" suppressHydrationWarning>
-          {now
-            ? now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }) +
-              " · " +
-              now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
-            : " "}
+          {now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+          {" · "}
+          {now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
         </p>
       </div>
       <Button onClick={() => openQuickAdd()}>
