@@ -269,6 +269,28 @@ export interface Skill {
   updated_at: string;
 }
 
+export interface Roadmap {
+  id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  is_custom: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoadmapStep {
+  id: string;
+  roadmap_id: string;
+  user_id: string;
+  title: string;
+  description: string | null;
+  status: RoadmapStepStatus;
+  resource_url: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface Resource {
   id: string;
   user_id: string;

@@ -124,3 +124,147 @@ export async function updateSkillLevel(skillId: string, level: string) {
   revalidatePath("/learning/skills");
   return { error: error?.message };
 }
+
+export async function deleteSkill(skillId: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("skills").delete().eq("id", skillId).eq("user_id", user.id);
+  revalidatePath("/learning/skills");
+  return { error: error?.message };
+}
+
+// ---------- Roadmaps ----------
+
+export async function createRoadmap(formData: FormData): Promise<ActionState & { id?: string }> {
+  const { supabase, user } = await requireUser();
+
+  const title = String(formData.get("title") || "").trim();
+  if (!title) return { error: "Roadmap title is required." };
+
+  const { data, error } = await supabase
+    .from("roadmaps")
+    .insert({ user_id: user.id, title, description: (formData.get("description") as string) || null })
+    .select("id")
+    .single();
+
+  revalidatePath("/learning/roadmap");
+  return { error: error?.message, id: data?.id };
+}
+
+export async function addRoadmapStep(roadmapId: string, formData: FormData) {
+  const { supabase, user } = await requireUser();
+
+  const title = String(formData.get("title") || "").trim();
+  if (!title) return { error: "Step title is required." };
+
+  const { data: existing } = await supabase.from("roadmap_steps").select("id").eq("roadmap_id", roadmapId);
+
+  const { error } = await supabase.from("roadmap_steps").insert({
+    roadmap_id: roadmapId,
+    user_id: user.id,
+    title,
+    description: (formData.get("description") as string) || null,
+    resource_url: (formData.get("resourceUrl") as string) || null,
+    status: (existing?.length ?? 0) === 0 ? "current" : "upcoming",
+    sort_order: existing?.length ?? 0,
+  });
+
+  revalidatePath("/learning/roadmap");
+  return { error: error?.message };
+}
+
+export async function updateRoadmapStepStatus(stepId: string, status: string) {
+  const { supabase, user } = await requireUser();
+
+  const { data: step } = await supabase
+    .from("roadmap_steps")
+    .select("roadmap_id, sort_order")
+    .eq("id", stepId)
+    .single();
+
+  const { error } = await supabase
+    .from("roadmap_steps")
+    .update({ status })
+    .eq("id", stepId)
+    .eq("user_id", user.id);
+
+  if (!error && step && status === "completed") {
+    const { data: next } = await supabase
+      .from("roadmap_steps")
+      .select("id, status")
+      .eq("roadmap_id", step.roadmap_id)
+      .gt("sort_order", step.sort_order)
+      .order("sort_order", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (next && next.status === "upcoming") {
+      await supabase.from("roadmap_steps").update({ status: "current" }).eq("id", next.id);
+    }
+  }
+
+  revalidatePath("/learning/roadmap");
+  return { error: error?.message };
+}
+
+export async function deleteRoadmap(roadmapId: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("roadmaps").delete().eq("id", roadmapId).eq("user_id", user.id);
+  revalidatePath("/learning/roadmap");
+  return { error: error?.message };
+}
+
+// ---------- Certifications ----------
+
+export async function createCertification(formData: FormData): Promise<ActionState> {
+  const { supabase, user } = await requireUser();
+
+  const name = String(formData.get("name") || "").trim();
+  const provider = String(formData.get("provider") || "").trim();
+  if (!name || !provider) return { error: "Name and provider are required." };
+
+  const skills = String(formData.get("skills") || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const { error } = await supabase.from("certifications").insert({
+    user_id: user.id,
+    name,
+    provider,
+    date_earned: (formData.get("dateEarned") as string) || null,
+    expiration_date: (formData.get("expirationDate") as string) || null,
+    credential_id: (formData.get("credentialId") as string) || null,
+    credential_url: (formData.get("credentialUrl") as string) || null,
+    skills,
+  });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/learning/certifications");
+  return { success: "Certification added." };
+}
+
+export async function deleteCertification(certId: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("certifications").delete().eq("id", certId).eq("user_id", user.id);
+  revalidatePath("/learning/certifications");
+  return { error: error?.message };
+}
+
+export async function updateResourceStatus(resourceId: string, status: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase
+    .from("resources")
+    .update({ status })
+    .eq("id", resourceId)
+    .eq("user_id", user.id);
+  revalidatePath("/learning/resources");
+  return { error: error?.message };
+}
+
+export async function deleteResource(resourceId: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("resources").delete().eq("id", resourceId).eq("user_id", user.id);
+  revalidatePath("/learning/resources");
+  return { error: error?.message };
+}
