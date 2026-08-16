@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Square, Timer } from "lucide-react";
 import { toast } from "sonner";
@@ -66,11 +67,13 @@ export function ActiveTimerPill() {
 
   return (
     <div className="flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-2.5 py-1 text-xs">
-      <Timer className="size-3.5 text-primary" />
-      <span className="hidden font-medium text-foreground sm:inline">
-        {running.project?.name ?? running.description ?? "Coding session"}
-      </span>
-      <span className="font-mono tabular-nums text-primary">{formatClock(elapsed)}</span>
+      <Link href="/time-tracking" className="flex items-center gap-2">
+        <Timer className="size-3.5 text-primary" />
+        <span className="hidden font-medium text-foreground sm:inline">
+          {running.project?.name ?? running.description ?? "Coding session"}
+        </span>
+        <span className="font-mono tabular-nums text-primary">{formatClock(elapsed)}</span>
+      </Link>
       <Button size="icon" variant="ghost" className="size-5" onClick={handleStop} aria-label="Stop timer">
         <Square className="size-3 fill-current" />
       </Button>

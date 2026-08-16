@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   AreaChart,
@@ -54,7 +55,12 @@ export function WeeklyActivityChart() {
   return (
     <Card className="py-4">
       <CardHeader className="flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm">Weekly Activity</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm">Weekly Activity</CardTitle>
+          <Link href="/time-tracking" className="text-xs text-muted-foreground hover:text-foreground">
+            Log time →
+          </Link>
+        </div>
         <Tabs value={range} onValueChange={(v) => setRange(v as ActivityRange)}>
           <TabsList>
             {(Object.keys(RANGE_LABEL) as ActivityRange[]).map((r) => (
