@@ -48,11 +48,13 @@
   --sidebar-primary: oklch(0.32 0.14 265);
   --sidebar-primary-foreground: oklch(0.98 0.005 260);
 
-  --chart-1: oklch(0.55 0.18 265);
-  --chart-2: oklch(0.65 0.15 200);
-  --chart-3: oklch(0.6 0.14 155);
-  --chart-4: oklch(0.72 0.15 75);
-  --chart-5: oklch(0.6 0.19 20);
+  /* Validated categorical palette (dataviz skill reference palette) — fixed
+     order, do not reassign per-chart or cycle. */
+  --chart-1: #2a78d6; /* blue */
+  --chart-2: #eb6834; /* orange */
+  --chart-3: #1baf7a; /* aqua */
+  --chart-4: #eda100; /* yellow */
+  --chart-5: #4a3aa7; /* violet */
 }
 
 .dark {
@@ -98,11 +100,11 @@
   --sidebar-primary: oklch(0.78 0.11 265);
   --sidebar-primary-foreground: oklch(0.16 0.02 265);
 
-  --chart-1: oklch(0.7 0.14 265);
-  --chart-2: oklch(0.72 0.12 200);
-  --chart-3: oklch(0.68 0.13 155);
-  --chart-4: oklch(0.78 0.13 75);
-  --chart-5: oklch(0.68 0.17 20);
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #9085e9;
 }
 
 @theme inline {
