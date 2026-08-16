@@ -10,6 +10,7 @@ export const taskSchema = z.object({
   projectId: z.string().uuid().optional().or(z.literal("")),
   dueDate: z.string().optional(),
   estimatedMinutes: z.coerce.number().int().positive().optional().or(z.literal("")),
+  recurrenceFrequency: z.enum(["none", "daily", "weekly", "monthly"]).default("none"),
 });
 
 export type TaskInput = z.infer<typeof taskSchema>;

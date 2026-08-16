@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { toast } from "sonner";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Focus } from "lucide-react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { toggleTaskCompleted } from "@/services/actions/tasks";
 import { PRIORITY_BADGE, PRIORITY_LABEL, TASK_STATUS_LABEL } from "@/lib/constants";
 import { cn, formatRelativeTime } from "@/lib/utils";
@@ -14,10 +16,12 @@ import type { Task } from "@/types/database";
 export function TaskRow({
   task,
   showProject = false,
+  showFocus = false,
   onClick,
 }: {
   task: Task;
   showProject?: boolean;
+  showFocus?: boolean;
   onClick?: () => void;
 }) {
   const [completed, setCompleted] = React.useState(task.status === "completed");
@@ -54,6 +58,13 @@ export function TaskRow({
           )}
         </div>
       </button>
+      {showFocus && !completed && (
+        <Button size="icon" variant="ghost" className="size-7" asChild>
+          <Link href={`/focus/${task.id}`} aria-label="Start focus session">
+            <Focus className="size-3.5" />
+          </Link>
+        </Button>
+      )}
       <Badge variant={PRIORITY_BADGE[task.priority]}>{PRIORITY_LABEL[task.priority]}</Badge>
     </li>
   );

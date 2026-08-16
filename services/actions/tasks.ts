@@ -21,6 +21,7 @@ export async function createTask(_prevState: ActionState, formData: FormData): P
     projectId: formData.get("projectId") || undefined,
     dueDate: formData.get("dueDate") || undefined,
     estimatedMinutes: formData.get("estimatedMinutes") || undefined,
+    recurrenceFrequency: formData.get("recurrenceFrequency") || "none",
   });
 
   if (!parsed.success) {
@@ -30,6 +31,8 @@ export async function createTask(_prevState: ActionState, formData: FormData): P
   const tags = parsed.data.tags
     ? parsed.data.tags.split(",").map((t) => t.trim()).filter(Boolean)
     : [];
+
+  const isRecurring = parsed.data.recurrenceFrequency !== "none";
 
   const { error } = await supabase.from("tasks").insert({
     user_id: user.id,
@@ -42,6 +45,8 @@ export async function createTask(_prevState: ActionState, formData: FormData): P
     tags,
     due_date: parsed.data.dueDate || null,
     estimated_minutes: parsed.data.estimatedMinutes ? Number(parsed.data.estimatedMinutes) : null,
+    is_recurring: isRecurring,
+    recurrence_frequency: isRecurring ? parsed.data.recurrenceFrequency : null,
   });
 
   if (error) {
@@ -54,10 +59,23 @@ export async function createTask(_prevState: ActionState, formData: FormData): P
   return { success: "Task created." };
 }
 
+function nextDueDate(current: string | null, frequency: string): string | null {
+  if (!current) return null;
+  const date = new Date(current);
+  if (frequency === "daily") date.setDate(date.getDate() + 1);
+  else if (frequency === "weekly") date.setDate(date.getDate() + 7);
+  else if (frequency === "monthly") date.setMonth(date.getMonth() + 1);
+  return date.toISOString();
+}
+
 export async function updateTaskStatus(taskId: string, status: string) {
   const { supabase, user } = await requireUser();
 
-  const { data: task } = await supabase.from("tasks").select("title, project_id").eq("id", taskId).single();
+  const { data: task } = await supabase
+    .from("tasks")
+    .select("*")
+    .eq("id", taskId)
+    .single();
 
   const { error } = await supabase
     .from("tasks")
@@ -77,6 +95,24 @@ export async function updateTaskStatus(taskId: string, status: string) {
       action: "completed",
       message: `Completed task "${task.title}"`,
     });
+
+    if (task.is_recurring && task.recurrence_frequency) {
+      await supabase.from("tasks").insert({
+        user_id: user.id,
+        project_id: task.project_id,
+        title: task.title,
+        description: task.description,
+        status: "todo",
+        priority: task.priority,
+        category: task.category,
+        tags: task.tags,
+        due_date: nextDueDate(task.due_date, task.recurrence_frequency),
+        estimated_minutes: task.estimated_minutes,
+        is_recurring: true,
+        recurrence_frequency: task.recurrence_frequency,
+        recurrence_parent_id: task.recurrence_parent_id ?? task.id,
+      });
+    }
   }
 
   revalidatePath("/tasks");

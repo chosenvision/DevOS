@@ -81,6 +81,18 @@ export function TaskFormDialog({ open, onOpenChange, projectId, projects }: Task
               <Input id="t-est" name="estimatedMinutes" type="number" min={1} placeholder="60" />
             </div>
           </div>
+          <div className="space-y-1.5">
+            <Label>Repeat</Label>
+            <Select name="recurrenceFrequency" defaultValue="none">
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Does not repeat</SelectItem>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {projectId ? (
             <input type="hidden" name="projectId" value={projectId} />
           ) : projects && projects.length > 0 ? (
