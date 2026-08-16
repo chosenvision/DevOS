@@ -173,6 +173,20 @@ export async function updateTask(taskId: string, formData: FormData): Promise<Ac
   return { success: "Task updated." };
 }
 
+export async function rescheduleTask(taskId: string, newDate: string) {
+  const { supabase, user } = await requireUser();
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({ due_date: newDate })
+    .eq("id", taskId)
+    .eq("user_id", user.id);
+
+  revalidatePath("/tasks");
+  revalidatePath("/calendar");
+  return { error: error?.message };
+}
+
 export async function deleteTask(taskId: string) {
   const { supabase, user } = await requireUser();
   const { error } = await supabase.from("tasks").delete().eq("id", taskId).eq("user_id", user.id);

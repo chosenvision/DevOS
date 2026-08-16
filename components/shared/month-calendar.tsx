@@ -10,6 +10,7 @@ export interface CalendarItem {
   id: string;
   date: string;
   render: React.ReactNode;
+  draggable?: boolean;
 }
 
 interface MonthCalendarProps {
@@ -17,6 +18,7 @@ interface MonthCalendarProps {
   month?: Date;
   onMonthChange?: (month: Date) => void;
   onDayClick?: (date: Date) => void;
+  onItemDrop?: (itemId: string, newDate: Date) => void;
 }
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -25,8 +27,9 @@ function toKey(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
-export function MonthCalendar({ items, month, onMonthChange, onDayClick }: MonthCalendarProps) {
+export function MonthCalendar({ items, month, onMonthChange, onDayClick, onItemDrop }: MonthCalendarProps) {
   const [internalMonth, setInternalMonth] = React.useState(() => month ?? new Date());
+  const [dragOverKey, setDragOverKey] = React.useState<string | null>(null);
   const activeMonth = month ?? internalMonth;
 
   function changeMonth(delta: number) {
@@ -47,7 +50,6 @@ export function MonthCalendar({ items, month, onMonthChange, onDayClick }: Month
 
   const firstOfMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth(), 1);
   const startOffset = firstOfMonth.getDay();
-  const daysInMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth() + 1, 0).getDate();
   const gridStart = new Date(firstOfMonth);
   gridStart.setDate(gridStart.getDate() - startOffset);
 
@@ -88,13 +90,35 @@ export function MonthCalendar({ items, month, onMonthChange, onDayClick }: Month
           const inMonth = date.getMonth() === activeMonth.getMonth();
           const dayItems = itemsByDay.get(key) ?? [];
           return (
-            <button
-              type="button"
+            <div
               key={i}
+              role={onDayClick ? "button" : undefined}
+              tabIndex={onDayClick ? 0 : undefined}
               onClick={() => onDayClick?.(date)}
+              onDragOver={
+                onItemDrop
+                  ? (e) => {
+                      e.preventDefault();
+                      setDragOverKey(key);
+                    }
+                  : undefined
+              }
+              onDragLeave={onItemDrop ? () => setDragOverKey((k) => (k === key ? null : k)) : undefined}
+              onDrop={
+                onItemDrop
+                  ? (e) => {
+                      e.preventDefault();
+                      const itemId = e.dataTransfer.getData("text/calendar-item-id");
+                      if (itemId) onItemDrop(itemId, date);
+                      setDragOverKey(null);
+                    }
+                  : undefined
+              }
               className={cn(
-                "flex min-h-24 flex-col gap-1 border-b border-r border-border p-1.5 text-left align-top",
+                "flex min-h-24 flex-col gap-1 border-b border-r border-border p-1.5 text-left align-top transition-colors",
+                onDayClick && "cursor-pointer",
                 !inMonth && "bg-muted/30 text-muted-foreground/50",
+                dragOverKey === key && "bg-primary/10",
                 (i + 1) % 7 === 0 && "border-r-0"
               )}
             >
@@ -103,13 +127,27 @@ export function MonthCalendar({ items, month, onMonthChange, onDayClick }: Month
               </span>
               <div className="flex flex-col gap-0.5 overflow-hidden">
                 {dayItems.slice(0, 3).map((item) => (
-                  <div key={item.id} className="truncate">{item.render}</div>
+                  <div
+                    key={item.id}
+                    className="truncate"
+                    draggable={item.draggable}
+                    onDragStart={
+                      item.draggable
+                        ? (e) => {
+                            e.stopPropagation();
+                            e.dataTransfer.setData("text/calendar-item-id", item.id);
+                          }
+                        : undefined
+                    }
+                  >
+                    {item.render}
+                  </div>
                 ))}
                 {dayItems.length > 3 && (
                   <span className="text-[10px] text-muted-foreground">+{dayItems.length - 3} more</span>
                 )}
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
