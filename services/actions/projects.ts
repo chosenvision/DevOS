@@ -237,3 +237,133 @@ export async function deleteProject(projectId: string) {
   revalidatePath("/projects");
   redirect("/projects");
 }
+
+// ---------- Milestones ----------
+
+export async function createMilestone(projectId: string, formData: FormData) {
+  const { supabase, user } = await requireUser();
+
+  const title = String(formData.get("title") || "").trim();
+  if (!title) return { error: "Milestone title is required." };
+
+  const { data: existing } = await supabase
+    .from("project_milestones")
+    .select("id")
+    .eq("project_id", projectId);
+
+  const { error } = await supabase.from("project_milestones").insert({
+    project_id: projectId,
+    user_id: user.id,
+    title,
+    description: (formData.get("description") as string) || null,
+    target_date: (formData.get("targetDate") as string) || null,
+    sort_order: existing?.length ?? 0,
+  });
+
+  const { data: project } = await supabase.from("projects").select("slug").eq("id", projectId).single();
+  if (project) revalidatePath(`/projects/${project.slug}`);
+  return { error: error?.message };
+}
+
+export async function updateMilestoneStatus(milestoneId: string, status: string) {
+  const { supabase, user } = await requireUser();
+
+  const { data: milestone } = await supabase
+    .from("project_milestones")
+    .select("title, project_id, projects(slug)")
+    .eq("id", milestoneId)
+    .single();
+
+  const { error } = await supabase
+    .from("project_milestones")
+    .update({ status, progress: status === "completed" ? 100 : undefined })
+    .eq("id", milestoneId)
+    .eq("user_id", user.id);
+
+  if (!error && milestone) {
+    await logActivity(supabase, {
+      userId: user.id,
+      entityType: "milestone",
+      entityId: milestoneId,
+      projectId: milestone.project_id,
+      action: status === "completed" ? "completed" : "status_changed",
+      message:
+        status === "completed"
+          ? `Completed milestone "${milestone.title}"`
+          : `Milestone "${milestone.title}" moved to ${status.replace("_", " ")}`,
+    });
+    const slug = (milestone as unknown as { projects: { slug: string } }).projects?.slug;
+    if (slug) revalidatePath(`/projects/${slug}`);
+  }
+
+  return { error: error?.message };
+}
+
+export async function deleteMilestone(milestoneId: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase
+    .from("project_milestones")
+    .delete()
+    .eq("id", milestoneId)
+    .eq("user_id", user.id);
+
+  revalidatePath("/projects");
+  return { error: error?.message };
+}
+
+// ---------- Bugs ----------
+
+export async function createBug(projectId: string, formData: FormData) {
+  const { supabase, user } = await requireUser();
+
+  const title = String(formData.get("title") || "").trim();
+  if (!title) return { error: "Bug title is required." };
+
+  const { error } = await supabase.from("bugs").insert({
+    project_id: projectId,
+    user_id: user.id,
+    title,
+    description: (formData.get("description") as string) || null,
+    severity: (formData.get("severity") as string) || "medium",
+    priority: (formData.get("priority") as string) || "medium",
+    steps_to_reproduce: (formData.get("stepsToReproduce") as string) || null,
+    expected_result: (formData.get("expectedResult") as string) || null,
+    actual_result: (formData.get("actualResult") as string) || null,
+  });
+
+  const { data: project } = await supabase.from("projects").select("slug").eq("id", projectId).single();
+  if (project) revalidatePath(`/projects/${project.slug}`);
+  return { error: error?.message };
+}
+
+export async function updateBugStatus(bugId: string, status: string) {
+  const { supabase, user } = await requireUser();
+
+  const { data: bug } = await supabase
+    .from("bugs")
+    .select("title, project_id, projects(slug)")
+    .eq("id", bugId)
+    .single();
+
+  const { error } = await supabase
+    .from("bugs")
+    .update({ status, resolved_at: status === "resolved" ? new Date().toISOString() : null })
+    .eq("id", bugId)
+    .eq("user_id", user.id);
+
+  if (!error && bug) {
+    await logActivity(supabase, {
+      userId: user.id,
+      entityType: "bug",
+      entityId: bugId,
+      projectId: bug.project_id,
+      action: status === "resolved" ? "resolved" : "status_changed",
+      message:
+        status === "resolved" ? `Resolved bug "${bug.title}"` : `Bug "${bug.title}" moved to ${status}`,
+    });
+    const slug = (bug as unknown as { projects: { slug: string } }).projects?.slug;
+    if (slug) revalidatePath(`/projects/${slug}`);
+  }
+
+  return { error: error?.message };
+}
