@@ -250,7 +250,7 @@ export async function deleteJobSearch(jobSearchId: string) {
 
 // -- Job Listings + Match Engine --------------------------------------------
 
-async function computeAndSaveMatch(
+export async function computeAndSaveMatch(
   supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
   userId: string,
   listingId: string

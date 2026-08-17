@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
-import { Mail, CalendarDays, Link2 } from "lucide-react";
+import { Mail, CalendarDays } from "lucide-react";
 
 import { requireUser } from "@/services/auth";
 import { GithubConnect } from "@/components/settings/github-connect";
+import { LinkedinConnect } from "@/components/settings/linkedin-connect";
 import { IntegrationPlaceholderCard } from "@/components/settings/integration-placeholder-card";
-import type { GithubConnection } from "@/types/database";
+import type { GithubConnection, LinkedinConnection } from "@/types/database";
 
 export const metadata: Metadata = { title: "Integrations — DevOS" };
 
 export default async function IntegrationsSettingsPage() {
   const { supabase, user } = await requireUser();
-  const { data: connection } = await supabase
-    .from("github_connections")
-    .select("*")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const [{ data: githubConnection }, { data: linkedinConnection }] = await Promise.all([
+    supabase.from("github_connections").select("*").eq("user_id", user.id).maybeSingle(),
+    supabase.from("linkedin_connections").select("*").eq("user_id", user.id).maybeSingle(),
+  ]);
 
   return (
     <div className="space-y-4">
-      <GithubConnect connection={connection as GithubConnection | null} />
+      <GithubConnect connection={githubConnection as GithubConnection | null} />
+      <LinkedinConnect connection={linkedinConnection as LinkedinConnection | null} />
 
       <IntegrationPlaceholderCard
         name="Gmail"
@@ -31,12 +32,6 @@ export default async function IntegrationsSettingsPage() {
         icon={CalendarDays}
         description="Lets DevOS check your availability and create interview events directly from a scheduling email."
         requirements={["GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET", "Calendar API scope: calendar.events"]}
-      />
-      <IntegrationPlaceholderCard
-        name="LinkedIn"
-        icon={Link2}
-        description="Official LinkedIn OAuth/API access, where permitted, for profile data — never automated login or scraping."
-        requirements={["LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET", "Access granted under LinkedIn's official API terms"]}
       />
     </div>
   );

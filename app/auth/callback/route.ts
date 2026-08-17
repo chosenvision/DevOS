@@ -29,6 +29,24 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      const linkedinIdentity = data.user?.identities?.find((i) => i.provider === "linkedin_oidc");
+
+      if (linkedinIdentity) {
+        // LinkedIn's OIDC scope only ever returns standard OpenID claims —
+        // name/email/picture. No job data, connections, or profile URL.
+        const identityData = linkedinIdentity.identity_data ?? {};
+        await supabase.from("linkedin_connections").upsert(
+          {
+            user_id: data.user!.id,
+            linkedin_name: (identityData.name as string) ?? (identityData.email as string) ?? "LinkedIn member",
+            linkedin_email: (identityData.email as string) ?? null,
+            avatar_url: (identityData.picture as string) ?? null,
+            last_synced_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" }
+        );
+      }
+
       redirect(next);
     }
   }

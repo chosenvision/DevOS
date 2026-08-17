@@ -263,10 +263,11 @@ user menu.
 ## 8. Career Agent
 
 The Career Hub was expanded into an AI Career Agent per a 44-section product spec, built in the
-phased order the spec itself lays out. **Phase 1 is fully built and real** — no fake buttons, no
-placeholder data. Phases 2–7 need external credentials (an LLM API key, Gmail/Calendar/LinkedIn
-OAuth, a job board API) this environment doesn't have, so their UI/architecture exists but is
-honestly marked "Connection Required" (see `components/shared/connection-required.tsx` and
+phased order the spec itself lays out. **Phase 1, LinkedIn sign-in, and live job search are
+fully built and real** — no fake buttons, no placeholder data. The rest needs external
+credentials (an LLM API key, Gmail/Calendar OAuth) this environment doesn't have, so that
+UI/architecture exists but is honestly marked "Connection Required" (see
+`components/shared/connection-required.tsx` and
 `components/settings/integration-placeholder-card.tsx`) rather than faked. Nothing here breaks
 or duplicates the pre-existing Career Hub (Applications, Resume Builder, Companies, Contacts,
 Interview Prep, Coding Practice) — it's extended in place.
@@ -282,10 +283,15 @@ Interview Prep, Coding Practice) — it's extended in place.
   (skills 40% / title 20% / location+work-setup 20% / salary 20%, with excluded companies/
   keywords capping the score) that needs no AI provider. Every job gets sub-scores, "Why You
   Match" / "Missing" bullets, and a recommendation tier (Excellent/Strong/Possible/Weak Match).
-- **Job Search** (`job_listings`, `job_searches`, `/career/job-search`) — since there's no live
-  external job feed connected yet, jobs are added manually (paste a URL + description) and
-  scored immediately. Saved searches double as future job-alert configs
-  (`notify_on_match`/`match_threshold`) once a job source is connected.
+- **Job Search** (`job_listings`, `job_searches`, `/career/job-search`) — jobs can be added
+  manually (paste a URL + description) or pulled from a **live search** backed by Arbeitnow
+  (`lib/job-sources/arbeitnow.ts`), a free keyless job board API — no signup needed, works
+  immediately. Either path scores the job the same way. Coverage is intentionally limited to
+  what a keyless public API offers (mostly EU/remote tech roles) — LinkedIn and most major job
+  boards require partner-level API access that isn't available to individual apps; a
+  `JOB_BOARD_API_KEY`-gated second source (Adzuna/Jooble/etc.) can be added the same way once
+  you have one. Saved searches double as job-alert configs (`notify_on_match`/`match_threshold`)
+  once a source with match-worthy volume is wired up.
 - **Career Command Center** (`/career`) — real KPIs (active applications, applications this
   week, interviews scheduled, high-match jobs, follow-ups due, offers), an Application Funnel
   (Saved → Applied → Assessment → Interview → Final → Offer, reusing the existing
@@ -306,17 +312,26 @@ Interview Prep, Coding Practice) — it's extended in place.
   `relationship`/`last_contacted_at`/`next_follow_up_at`, i.e. it already *was* a lightweight
   CRM. "Networking" from the spec is intentionally folded into this same page rather than built
   as a separate duplicate system.
+- **LinkedIn sign-in** (`linkedin_connections`, Settings → Integrations) — Sign in with LinkedIn
+  via Supabase's `linkedin_oidc` provider, mirroring the pre-existing GitHub identity link
+  exactly (`supabase.auth.linkIdentity`, handled in `app/auth/callback/route.ts`). Requires
+  enabling the provider in the Supabase dashboard (Authentication → Providers) with a LinkedIn
+  Developer app's client ID/secret — not a Next.js env var, same as GitHub. **Scope limit is by
+  LinkedIn's own design, not a gap in this build**: OIDC only ever returns name/email/photo.
+  There is no LinkedIn API available to individual apps for job listings, connections, or
+  messages outside their restricted partner program — that's why job data comes from a
+  separate source (above), not from this connection.
 
-**Phases 2–7 — architecture/UI scaffolded, marked Connection Required:**
+**Remaining phases — architecture/UI scaffolded, marked Connection Required:**
 
 | Phase | What it needs | Where |
 | --- | --- | --- |
-| 2. Resume Studio tailoring, cover letters, answer library | `ANTHROPIC_API_KEY` (or another AI provider) | `/settings/ai` |
-| 3. Career Inbox, email classification, AI drafts | Gmail OAuth + AI provider | `/career/inbox`, `/settings/integrations` |
-| 4. Interview scheduling from email | Google Calendar OAuth | `/settings/integrations` |
-| 5. (Recruiter CRM / follow-ups / assessments) | — | **built in Phase 1**, see above |
-| 6. Live job discovery, job alerts firing | A job board API + LinkedIn's official API | `/career/job-search`, `/settings/integrations` |
-| 7. Automation rules, audit log, full AI agent | AI provider + all of the above | — |
+| Resume Studio tailoring, cover letters, answer library | `ANTHROPIC_API_KEY` (or another AI provider) | `/settings/ai` |
+| Career Inbox, email classification, AI drafts | Gmail OAuth + AI provider | `/career/inbox`, `/settings/integrations` |
+| Interview scheduling from email | Google Calendar OAuth | `/settings/integrations` |
+| Recruiter CRM / follow-ups / assessments | — | **built in Phase 1**, see above |
+| Job discovery beyond Arbeitnow, job alerts actually firing | An additional job board API (`JOB_BOARD_API_KEY`) | `/career/job-search`, `/settings/integrations` |
+| Automation rules, audit log, full AI agent | AI provider + all of the above | — |
 
 Required env vars for each are documented in `.env.local.example`. No token is ever exposed to
 the client — every OAuth exchange and AI call would run server-side (Server Action or Route
@@ -326,9 +341,10 @@ Handler), matching how the existing GitHub identity link already works.
 
 Being direct about scope, since "production-ready" claims are only useful if they're accurate:
 
-- **Career Agent Phases 2–7** (AI resume tailoring/cover letters, Career Inbox + email drafting,
-  interview scheduling, live job discovery/alerts, automation rules) — see "8. Career Agent"
-  above for exactly what's built vs. Connection Required and why.
+- **Remaining Career Agent phases** (AI resume tailoring/cover letters, Career Inbox + email
+  drafting, interview scheduling, job alerts actually firing, automation rules) — see
+  "8. Career Agent" above for exactly what's built (including LinkedIn sign-in and live job
+  search) vs. Connection Required and why.
 - **AI features (spec §24–27, Weekly Review §27)** — no AI Assistant, AI Project Planner,
   Learning Roadmap generator, Resume/Cover Letter writer, or Weekly Review page. These need an
   LLM API key this environment doesn't have; `/settings/ai` is an honest placeholder, not a

@@ -35,11 +35,13 @@ See `supabase/seed/README.md` for details.
 ### Career Agent (AI Career Hub)
 
 `/career` is an AI-assisted career agent: a Career Profile that feeds a deterministic Job Match
-score, manual job capture + analysis, an Application Funnel, Interviews, Assessments, and Career
-Analytics — all work out of the box with just Supabase. Career Inbox (Gmail), interview
-scheduling (Google Calendar), AI resume tailoring/cover letters, and live job discovery each need
-extra credentials — see the "Career Agent (Phases 2-6)" block in `.env.local.example` and
-`ARCHITECTURE.md` → "8. Career Agent" for exactly what's required and what each unlocks.
+score, live job search (a free keyless source) plus manual job capture, an Application Funnel,
+Interviews, Assessments, and Career Analytics — all work out of the box with just Supabase.
+LinkedIn sign-in works too, the same way GitHub does (enable the provider in your Supabase
+dashboard) — though LinkedIn only ever shares your name/email/photo, never job data, by their
+own API's design. Career Inbox (Gmail), interview scheduling (Google Calendar), and AI resume
+tailoring/cover letters each need extra credentials — see the "Career Agent (Phases 2-6)" block
+in `.env.local.example` and `ARCHITECTURE.md` → "8. Career Agent" for exactly what's required.
 
 ## Project structure
 

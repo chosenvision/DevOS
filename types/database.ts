@@ -564,6 +564,15 @@ export interface GithubConnection {
   last_synced_at: string | null;
 }
 
+export interface LinkedinConnection {
+  user_id: string;
+  linkedin_name: string;
+  linkedin_email: string | null;
+  avatar_url: string | null;
+  connected_at: string;
+  last_synced_at: string | null;
+}
+
 export interface CalendarEvent {
   id: string;
   user_id: string;
