@@ -1,10 +1,15 @@
 import type {
   ApplicationStatus,
+  AssessmentStatus,
+  AssessmentType,
   BugSeverity,
   CourseStatus,
   DifficultyLevel,
+  EmploymentType,
   GoalStatus,
   IdeaStatus,
+  JobListingStatus,
+  MatchRecommendation,
   Priority,
   ProjectStatus,
   SkillLevel,
@@ -156,6 +161,53 @@ export const GOAL_STATUS_LABEL: Record<GoalStatus, string> = {
   in_progress: "In Progress",
   completed: "Completed",
   missed: "Missed",
+};
+
+export const EMPLOYMENT_TYPE_LABEL: Record<EmploymentType, string> = {
+  full_time: "Full-Time",
+  part_time: "Part-Time",
+  contract: "Contract",
+  internship: "Internship",
+};
+
+export const JOB_LISTING_STATUS_LABEL: Record<JobListingStatus, string> = {
+  new: "New",
+  saved: "Saved",
+  dismissed: "Dismissed",
+  applied: "Applied",
+};
+
+export const MATCH_RECOMMENDATION_LABEL: Record<MatchRecommendation, string> = {
+  excellent_match: "Excellent Match",
+  strong_match: "Strong Match",
+  possible_match: "Possible Match",
+  weak_match: "Weak Match",
+};
+
+export const MATCH_RECOMMENDATION_TONE: Record<MatchRecommendation, Tone> = {
+  excellent_match: "success",
+  strong_match: "primary",
+  possible_match: "warning",
+  weak_match: "destructive",
+};
+
+export const ASSESSMENT_TYPE_LABEL: Record<AssessmentType, string> = {
+  coding: "Coding",
+  sql: "SQL",
+  excel: "Excel",
+  case_study: "Case Study",
+  personality: "Personality",
+  video_interview: "Video Interview",
+  take_home_project: "Take-Home Project",
+  other: "Other",
+};
+
+export const ASSESSMENT_STATUS_LABEL: Record<AssessmentStatus, string> = {
+  not_started: "Not Started",
+  in_progress: "In Progress",
+  submitted: "Submitted",
+  passed: "Passed",
+  failed: "Failed",
 };
 
 export const TECH_STACK_SUGGESTIONS = [

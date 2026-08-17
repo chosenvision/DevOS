@@ -32,6 +32,15 @@ npm run seed -- --email you@example.com
 
 See `supabase/seed/README.md` for details.
 
+### Career Agent (AI Career Hub)
+
+`/career` is an AI-assisted career agent: a Career Profile that feeds a deterministic Job Match
+score, manual job capture + analysis, an Application Funnel, Interviews, Assessments, and Career
+Analytics — all work out of the box with just Supabase. Career Inbox (Gmail), interview
+scheduling (Google Calendar), AI resume tailoring/cover letters, and live job discovery each need
+extra credentials — see the "Career Agent (Phases 2-6)" block in `.env.local.example` and
+`ARCHITECTURE.md` → "8. Career Agent" for exactly what's required and what each unlocks.
+
 ## Project structure
 
 ```

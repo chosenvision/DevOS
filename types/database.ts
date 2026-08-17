@@ -47,6 +47,20 @@ export type InterviewCategory =
   | "company_specific";
 export type DifficultyLevel = "easy" | "medium" | "hard";
 
+export type EmploymentType = "full_time" | "part_time" | "contract" | "internship";
+export type JobListingStatus = "new" | "saved" | "dismissed" | "applied";
+export type MatchRecommendation = "excellent_match" | "strong_match" | "possible_match" | "weak_match";
+export type AssessmentType =
+  | "coding"
+  | "sql"
+  | "excel"
+  | "case_study"
+  | "personality"
+  | "video_interview"
+  | "take_home_project"
+  | "other";
+export type AssessmentStatus = "not_started" | "in_progress" | "submitted" | "passed" | "failed";
+
 export type NoteType = "general" | "project" | "learning" | "interview" | "meeting" | "code" | "idea";
 export type IdeaStatus = "inbox" | "researching" | "validated" | "planned" | "building" | "archived";
 
@@ -657,4 +671,93 @@ export interface UserAchievement {
   achievement_key: string;
   unlocked_at: string;
   achievement?: Achievement;
+}
+
+// -- Career Agent (Phase 1) --------------------------------------------
+
+export interface CareerProfile {
+  user_id: string;
+  professional_summary: string | null;
+  years_experience: number | null;
+  skills: string[];
+  preferred_roles: string[];
+  preferred_industries: string[];
+  preferred_locations: string[];
+  excluded_companies: string[];
+  excluded_keywords: string[];
+  remote_ok: boolean;
+  hybrid_ok: boolean;
+  onsite_ok: boolean;
+  employment_types: EmploymentType[];
+  min_salary: number | null;
+  target_salary: number | null;
+  notice_period: string | null;
+  work_authorization: string | null;
+  primary_resume_id: string | null;
+  updated_at: string;
+}
+
+export interface JobSearch {
+  id: string;
+  user_id: string;
+  name: string;
+  titles: string[];
+  keywords: string[];
+  locations: string[];
+  remote_ok: boolean;
+  hybrid_ok: boolean;
+  onsite_ok: boolean;
+  employment_types: EmploymentType[];
+  min_salary: number | null;
+  is_active: boolean;
+  notify_on_match: boolean;
+  match_threshold: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface JobListing {
+  id: string;
+  user_id: string;
+  company_id: string | null;
+  title: string;
+  company_name: string;
+  location: string | null;
+  work_mode: WorkMode | null;
+  employment_type: EmploymentType | null;
+  salary_min: number | null;
+  salary_max: number | null;
+  description: string | null;
+  skills: string[];
+  url: string | null;
+  source: string;
+  posted_date: string | null;
+  status: JobListingStatus;
+  match_score: number | null;
+  match_recommendation: MatchRecommendation | null;
+  match_why: string[];
+  match_missing: string[];
+  match_sub_scores: Partial<Record<"skills" | "title" | "location" | "salary", number>>;
+  match_computed_at: string | null;
+  application_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Assessment {
+  id: string;
+  user_id: string;
+  application_id: string | null;
+  company_name: string;
+  role: string | null;
+  assessment_type: AssessmentType;
+  platform: string | null;
+  url: string | null;
+  deadline: string | null;
+  status: AssessmentStatus;
+  score: string | null;
+  notes: string | null;
+  task_id: string | null;
+  created_at: string;
+  updated_at: string;
 }

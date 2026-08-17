@@ -260,10 +260,75 @@ Settings pinned at the bottom. Collapses to a `Sheet` drawer below `lg`. Topbar:
 trigger, active timer pill (when a session is running), Quick Add, notifications, theme toggle,
 user menu.
 
+## 8. Career Agent
+
+The Career Hub was expanded into an AI Career Agent per a 44-section product spec, built in the
+phased order the spec itself lays out. **Phase 1 is fully built and real** — no fake buttons, no
+placeholder data. Phases 2–7 need external credentials (an LLM API key, Gmail/Calendar/LinkedIn
+OAuth, a job board API) this environment doesn't have, so their UI/architecture exists but is
+honestly marked "Connection Required" (see `components/shared/connection-required.tsx` and
+`components/settings/integration-placeholder-card.tsx`) rather than faked. Nothing here breaks
+or duplicates the pre-existing Career Hub (Applications, Resume Builder, Companies, Contacts,
+Interview Prep, Coding Practice) — it's extended in place.
+
+**Phase 1 — built:**
+
+- **Career Profile** (`career_profiles`, `/career/profile`) — the source of truth for job
+  matching: skills, preferred roles/industries/locations, excluded companies/keywords, work
+  setup, employment type, salary range, notice period, work authorization. Detailed work
+  history/education intentionally stays on `resumes` (already structured JSON) rather than
+  being duplicated here.
+- **Job Match Engine** (`lib/career-match.ts`) — a deterministic, explainable 0–100% score
+  (skills 40% / title 20% / location+work-setup 20% / salary 20%, with excluded companies/
+  keywords capping the score) that needs no AI provider. Every job gets sub-scores, "Why You
+  Match" / "Missing" bullets, and a recommendation tier (Excellent/Strong/Possible/Weak Match).
+- **Job Search** (`job_listings`, `job_searches`, `/career/job-search`) — since there's no live
+  external job feed connected yet, jobs are added manually (paste a URL + description) and
+  scored immediately. Saved searches double as future job-alert configs
+  (`notify_on_match`/`match_threshold`) once a job source is connected.
+- **Career Command Center** (`/career`) — real KPIs (active applications, applications this
+  week, interviews scheduled, high-match jobs, follow-ups due, offers), an Application Funnel
+  (Saved → Applied → Assessment → Interview → Final → Offer, reusing the existing
+  `application_status` enum — no schema change needed there) with stage conversion rates, and
+  Today's Priorities computed from real `next_follow_up_at` / `interview_date` / high-match-job
+  data — not a mock list.
+- **Interviews** (`/career/interviews`) — built from existing `job_applications` rows in an
+  interview stage, joined with `companies.notes`/`culture_notes`. Prep still routes to the
+  existing Interview Prep / STAR Builder / Coding Practice tools rather than duplicating them.
+- **Assessments** (`assessments`, `/career/assessments`) — a small tracker (type, platform,
+  deadline, status, score) distinct from `job_applications.status = 'assessment'` because one
+  application can carry several assessments. Setting a deadline auto-creates a linked `tasks`
+  row, satisfying the spec's "assessments create tasks" integration requirement for real.
+- **Career Analytics** (`/career/analytics`) — promotes the pre-existing (but previously
+  unsurfaced) `getApplicationAnalytics` query to its own page, plus a new Source Analytics table
+  (`getSourceAnalytics`) comparing response/interview/offer rates per application source.
+- **Recruiters** — the existing Contacts feature relabeled; it already had
+  `relationship`/`last_contacted_at`/`next_follow_up_at`, i.e. it already *was* a lightweight
+  CRM. "Networking" from the spec is intentionally folded into this same page rather than built
+  as a separate duplicate system.
+
+**Phases 2–7 — architecture/UI scaffolded, marked Connection Required:**
+
+| Phase | What it needs | Where |
+| --- | --- | --- |
+| 2. Resume Studio tailoring, cover letters, answer library | `ANTHROPIC_API_KEY` (or another AI provider) | `/settings/ai` |
+| 3. Career Inbox, email classification, AI drafts | Gmail OAuth + AI provider | `/career/inbox`, `/settings/integrations` |
+| 4. Interview scheduling from email | Google Calendar OAuth | `/settings/integrations` |
+| 5. (Recruiter CRM / follow-ups / assessments) | — | **built in Phase 1**, see above |
+| 6. Live job discovery, job alerts firing | A job board API + LinkedIn's official API | `/career/job-search`, `/settings/integrations` |
+| 7. Automation rules, audit log, full AI agent | AI provider + all of the above | — |
+
+Required env vars for each are documented in `.env.local.example`. No token is ever exposed to
+the client — every OAuth exchange and AI call would run server-side (Server Action or Route
+Handler), matching how the existing GitHub identity link already works.
+
 ## What's not built
 
 Being direct about scope, since "production-ready" claims are only useful if they're accurate:
 
+- **Career Agent Phases 2–7** (AI resume tailoring/cover letters, Career Inbox + email drafting,
+  interview scheduling, live job discovery/alerts, automation rules) — see "8. Career Agent"
+  above for exactly what's built vs. Connection Required and why.
 - **AI features (spec §24–27, Weekly Review §27)** — no AI Assistant, AI Project Planner,
   Learning Roadmap generator, Resume/Cover Letter writer, or Weekly Review page. These need an
   LLM API key this environment doesn't have; `/settings/ai` is an honest placeholder, not a

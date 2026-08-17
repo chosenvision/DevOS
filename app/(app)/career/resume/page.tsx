@@ -4,7 +4,7 @@ import { requireUser } from "@/services/auth";
 import { getResumes } from "@/services/queries/career";
 import { ResumesPageClient } from "./resumes-page-client";
 
-export const metadata: Metadata = { title: "Resume — DevOS" };
+export const metadata: Metadata = { title: "Resume Studio — DevOS" };
 
 export default async function ResumesPage() {
   const { supabase, user } = await requireUser();
