@@ -20,13 +20,13 @@ export function Topbar({ name, email, avatarUrl }: TopbarProps) {
   const { setCommandPaletteOpen, openQuickAdd } = useUIStore();
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4">
+    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/80 px-4 backdrop-blur supports-backdrop-filter:bg-background/60">
       <MobileNav />
 
       <button
         type="button"
         onClick={() => setCommandPaletteOpen(true)}
-        className="flex h-8 flex-1 max-w-sm items-center gap-2 rounded-md border border-input bg-secondary/40 px-3 text-sm text-muted-foreground transition-colors hover:bg-secondary lg:max-w-xs"
+        className="flex h-8 flex-1 max-w-sm items-center gap-2 rounded-md border border-input bg-secondary/40 px-3 text-sm text-muted-foreground shadow-xs transition-colors hover:border-ring/40 hover:bg-secondary lg:max-w-xs"
       >
         <Search className="size-3.5" />
         Search or jump to...

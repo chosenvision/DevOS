@@ -35,7 +35,7 @@ export default async function DashboardPage() {
   const name = profile?.full_name?.split(" ")[0] || user.email?.split("@")[0] || "there";
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6">
+    <div className="mx-auto flex max-w-6xl flex-col gap-6 p-4 sm:p-6">
       <WelcomeHeader name={name} />
       <KpiGrid summary={summary} />
       <TodaySection data={today} />

@@ -23,7 +23,7 @@ export function MobileNav() {
         <SheetHeader>
           <SheetTitle asChild>
             <Link href="/dashboard" className="flex items-center gap-2 text-sm font-semibold" onClick={() => setOpen(false)}>
-              <span className="flex size-6 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
+              <span className="flex size-6 items-center justify-center rounded-md bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 text-sidebar-primary-foreground shadow-sm">
                 <Terminal className="size-3.5" />
               </span>
               DevOS

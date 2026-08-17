@@ -20,13 +20,25 @@ export function SidebarNav({ items, onNavigate }: { items: NavItem[]; onNavigate
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors",
+              "group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors",
               active
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
                 : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
             )}
           >
-            <item.icon className="size-4 shrink-0" />
+            <span
+              className={cn(
+                "absolute left-0 h-4 w-0.5 rounded-full bg-sidebar-primary transition-opacity",
+                active ? "opacity-100" : "opacity-0"
+              )}
+              aria-hidden
+            />
+            <item.icon
+              className={cn(
+                "size-4 shrink-0 transition-colors",
+                active ? "text-sidebar-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
+              )}
+            />
             {item.title}
           </Link>
         );

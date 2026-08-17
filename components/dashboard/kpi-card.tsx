@@ -4,6 +4,7 @@ import { ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { percentChange } from "@/lib/analytics";
+import { TONE_CLASSES, type Tone as KpiTone } from "@/lib/constants";
 
 interface KpiCardProps {
   label: string;
@@ -14,9 +15,18 @@ interface KpiCardProps {
   suffix?: string;
   caption?: string;
   invertTrend?: boolean;
+  tone?: KpiTone;
 }
 
-export function KpiCard({ label, value, icon: Icon, previous, current, caption, invertTrend }: KpiCardProps) {
+export function KpiIconChip({ icon: Icon, tone = "primary" }: { icon: LucideIcon; tone?: KpiTone }) {
+  return (
+    <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg", TONE_CLASSES[tone])}>
+      <Icon className="size-4" />
+    </span>
+  );
+}
+
+export function KpiCard({ label, value, icon, previous, current, caption, invertTrend, tone = "primary" }: KpiCardProps) {
   const change =
     previous !== undefined && current !== undefined ? percentChange(current, previous) : null;
   const isFlat = change === null || change === 0;
@@ -24,10 +34,10 @@ export function KpiCard({ label, value, icon: Icon, previous, current, caption, 
   const positive = invertTrend ? !isUp : isUp;
 
   return (
-    <Card className="gap-2 py-4">
+    <Card className="gap-3 py-4 transition-shadow hover:shadow-soft-lg">
       <div className="flex items-center justify-between px-5">
         <span className="text-xs font-medium text-muted-foreground">{label}</span>
-        <Icon className="size-4 text-muted-foreground/70" />
+        <KpiIconChip icon={icon} tone={tone} />
       </div>
       <div className="flex items-baseline gap-2 px-5">
         <span className="text-2xl font-semibold tabular-nums">{value}</span>

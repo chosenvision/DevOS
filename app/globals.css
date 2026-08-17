@@ -5,7 +5,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.65rem;
 
   --background: oklch(0.995 0 0);
   --foreground: oklch(0.18 0.01 260);
@@ -178,5 +178,53 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Soft, layered elevation — used instead of default shadow-md/lg for a
+     calmer depth that still reads in both themes. */
+  .shadow-soft {
+    box-shadow:
+      0 1px 2px -1px oklch(0.18 0.01 260 / 0.06),
+      0 4px 12px -4px oklch(0.18 0.01 260 / 0.08);
+  }
+  .dark .shadow-soft {
+    box-shadow:
+      0 1px 2px -1px oklch(0 0 0 / 0.3),
+      0 8px 20px -6px oklch(0 0 0 / 0.35);
+  }
+  .shadow-soft-lg {
+    box-shadow:
+      0 2px 4px -2px oklch(0.18 0.01 260 / 0.08),
+      0 12px 28px -8px oklch(0.18 0.01 260 / 0.12);
+  }
+  .dark .shadow-soft-lg {
+    box-shadow:
+      0 2px 4px -2px oklch(0 0 0 / 0.35),
+      0 16px 36px -10px oklch(0 0 0 / 0.45);
+  }
+
+  /* Subtle dot-grid texture for hero / marketing surfaces. */
+  .bg-dot-grid {
+    background-image: radial-gradient(oklch(0.5 0.01 260 / 0.18) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .dark .bg-dot-grid {
+    background-image: radial-gradient(oklch(1 0 0 / 0.1) 1px, transparent 1px);
+  }
+
+  /* Soft radial glow, e.g. behind a hero heading or logo mark. */
+  .bg-glow {
+    background-image: radial-gradient(
+      ellipse 60% 50% at 50% 0%,
+      oklch(0.55 0.16 265 / 0.16),
+      transparent 70%
+    );
+  }
+  .dark .bg-glow {
+    background-image: radial-gradient(
+      ellipse 60% 50% at 50% 0%,
+      oklch(0.6 0.16 265 / 0.22),
+      transparent 70%
+    );
   }
 }

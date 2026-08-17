@@ -11,9 +11,9 @@ const HIGHLIGHTS = [
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
-      <div className="flex flex-col justify-between border-r border-border bg-sidebar p-10 max-lg:hidden">
+      <div className="relative flex flex-col justify-between overflow-hidden border-r border-border bg-sidebar bg-glow bg-dot-grid p-10 max-lg:hidden">
         <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
-          <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+          <span className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
             <Terminal className="size-4" />
           </span>
           DevOS

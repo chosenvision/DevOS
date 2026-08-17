@@ -17,7 +17,7 @@ export default async function PortfolioPage() {
   ]);
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6">
+    <div className="mx-auto flex max-w-4xl flex-col gap-6 p-4 sm:p-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Portfolio</h1>
         <p className="text-sm text-muted-foreground">Choose which projects appear on your public portfolio.</p>

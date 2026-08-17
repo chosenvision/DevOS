@@ -24,7 +24,7 @@ export default async function TimeTrackingPage() {
   const preferences = preferencesRes.data as UserPreferences;
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6 p-4 sm:p-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Time Tracking</h1>
         <p className="text-sm text-muted-foreground">See where your hours are actually going.</p>

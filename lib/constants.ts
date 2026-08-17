@@ -11,6 +11,16 @@ import type {
   TaskStatus,
 } from "@/types/database";
 
+export type Tone = "primary" | "success" | "warning" | "destructive" | "accent";
+
+export const TONE_CLASSES: Record<Tone, string> = {
+  primary: "bg-primary/10 text-primary",
+  success: "bg-success/15 text-[oklch(0.4_0.12_155)] dark:text-success",
+  warning: "bg-warning/15 text-[oklch(0.45_0.13_75)] dark:text-warning",
+  destructive: "bg-destructive/10 text-destructive",
+  accent: "bg-accent text-accent-foreground",
+};
+
 export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
   idea: "Idea",
   planning: "Planning",

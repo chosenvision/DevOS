@@ -17,9 +17,9 @@ export function WelcomeHeader({ name }: { name: string }) {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border/80 bg-glow bg-card px-5 py-5 shadow-soft sm:flex-row sm:items-end sm:justify-between sm:px-6 sm:py-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-[1.75rem]">
           {getGreeting()}, {name} <span aria-hidden>👋</span>
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">{getMotivationalMessage()}</p>
@@ -29,7 +29,7 @@ export function WelcomeHeader({ name }: { name: string }) {
           {now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
         </p>
       </div>
-      <Button onClick={() => openQuickAdd()}>
+      <Button onClick={() => openQuickAdd()} className="w-full sm:w-auto">
         <Plus className="size-4" />
         Quick add
       </Button>

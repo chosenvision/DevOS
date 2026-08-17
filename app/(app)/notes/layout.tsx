@@ -9,7 +9,7 @@ const NAV = [
 
 export default function NotesLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
+    <div className="mx-auto flex max-w-5xl flex-col gap-6 p-4 sm:p-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Notes</h1>
         <p className="text-sm text-muted-foreground">Your second brain — notes, snippets, ideas, and links.</p>
