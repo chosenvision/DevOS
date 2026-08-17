@@ -16,6 +16,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { TONE_CLASSES, type Tone } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { FloatingOrbs } from "@/components/shared/floating-orbs";
+import { TiltCard } from "@/components/shared/tilt-card";
 
 const FEATURES: { icon: typeof FolderKanban; title: string; description: string; tone: Tone }[] = [
   {
@@ -59,10 +61,10 @@ const FEATURES: { icon: typeof FolderKanban; title: string; description: string;
 export default async function LandingPage() {
   const supabase = await createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (user) {
+  if (session?.user) {
     redirect("/dashboard");
   }
 
@@ -89,7 +91,8 @@ export default async function LandingPage() {
 
       <main className="flex-1">
         <section className="relative overflow-hidden bg-glow bg-dot-grid">
-          <div className="mx-auto max-w-4xl px-6 py-20 text-center sm:py-28">
+          <FloatingOrbs />
+          <div className="relative mx-auto max-w-4xl px-6 py-20 text-center sm:py-28">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-medium text-muted-foreground shadow-xs">
               <Sparkles className="size-3.5 text-primary" />
               Built for developers who ship
@@ -125,9 +128,9 @@ export default async function LandingPage() {
             </div>
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {FEATURES.map((feature) => (
-                <div
+                <TiltCard
                   key={feature.title}
-                  className="group flex flex-col gap-3 rounded-xl border border-border/80 bg-card p-6 shadow-soft transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-soft-lg"
+                  className="group flex flex-col gap-3 rounded-xl border border-border/80 bg-card p-6 shadow-soft transition-shadow duration-200 hover:border-primary/30 hover:shadow-soft-lg"
                 >
                   <span
                     className={cn(
@@ -139,7 +142,7 @@ export default async function LandingPage() {
                   </span>
                   <h3 className="text-sm font-semibold">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground">{feature.description}</p>
-                </div>
+                </TiltCard>
               ))}
             </div>
           </div>

@@ -227,4 +227,29 @@
       transparent 70%
     );
   }
+
+  /* Slow-drifting blobs for FloatingOrbs — transform-only so they stay
+     GPU-composited and never trigger layout/paint on the rest of the page. */
+  @keyframes float-a {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(3%, -6%, 0) scale(1.08); }
+  }
+  @keyframes float-b {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-4%, 5%, 0) scale(1.05); }
+  }
+  .animate-float-a {
+    animation: float-a 14s ease-in-out infinite;
+    will-change: transform;
+  }
+  .animate-float-b {
+    animation: float-b 18s ease-in-out infinite;
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float-a,
+    .animate-float-b {
+      animation: none;
+    }
+  }
 }

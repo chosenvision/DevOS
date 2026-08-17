@@ -35,7 +35,7 @@ export function SidebarNav({ items, onNavigate }: { items: NavItem[]; onNavigate
             />
             <item.icon
               className={cn(
-                "size-4 shrink-0 transition-colors",
+                "size-4 shrink-0 transition-[color,transform] duration-150 group-hover:scale-110",
                 active ? "text-sidebar-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
               )}
             />

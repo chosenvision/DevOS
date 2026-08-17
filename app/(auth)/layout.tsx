@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Terminal, CheckCircle2 } from "lucide-react";
 
+import { FloatingOrbs } from "@/components/shared/floating-orbs";
+
 const HIGHLIGHTS = [
   "Track every project, task, and deadline in one command center",
   "See coding hours, streaks, and GitHub activity at a glance",
@@ -12,7 +14,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="relative flex flex-col justify-between overflow-hidden border-r border-border bg-sidebar bg-glow bg-dot-grid p-10 max-lg:hidden">
-        <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
+        <FloatingOrbs />
+        <Link href="/" className="relative flex items-center gap-2 text-sm font-semibold">
           <span className="flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
             <Terminal className="size-4" />
           </span>
