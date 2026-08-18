@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 
 import { requireUser } from "@/services/auth";
+import { getOrCreateProfile } from "@/services/queries/profile";
 import { ProfileForm } from "@/components/settings/profile-form";
 import { AvatarUpload } from "@/components/settings/avatar-upload";
 import { GamificationCard } from "@/components/settings/gamification-card";
-import type { Profile, Achievement } from "@/types/database";
+import type { Achievement } from "@/types/database";
 
 export const metadata: Metadata = { title: "Profile — DevOS" };
 
 export default async function ProfileSettingsPage() {
   const { supabase, user } = await requireUser();
 
-  const [{ data: profile }, { data: achievements }, { data: userAchievements }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
+  const [profile, { data: achievements }, { data: userAchievements }] = await Promise.all([
+    getOrCreateProfile(supabase, user.id, user.email),
     supabase.from("achievements").select("*").order("sort_order"),
     supabase.from("user_achievements").select("achievement_key").eq("user_id", user.id),
   ]);
@@ -21,11 +22,11 @@ export default async function ProfileSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <AvatarUpload userId={user.id} name={(profile as Profile).full_name ?? ""} avatarUrl={(profile as Profile).avatar_url} />
-      <ProfileForm profile={profile as Profile} />
+      <AvatarUpload userId={user.id} name={profile.full_name ?? ""} avatarUrl={profile.avatar_url} />
+      <ProfileForm profile={profile} />
       <GamificationCard
-        xp={(profile as Profile).xp}
-        level={(profile as Profile).level}
+        xp={profile.xp}
+        level={profile.level}
         unlockedKeys={unlockedKeys}
         achievements={(achievements as Achievement[]) ?? []}
       />

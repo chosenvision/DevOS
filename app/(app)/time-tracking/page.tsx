@@ -3,25 +3,23 @@ import type { Metadata } from "next";
 import { requireUser } from "@/services/auth";
 import { getTimeTrackingSummary } from "@/services/queries/time-tracking";
 import { getProjectOptions } from "@/services/queries/projects";
+import { getOrCreateUserPreferences } from "@/services/queries/profile";
 import { TimerWidget } from "@/components/time-tracking/timer-widget";
 import { PomodoroWidget } from "@/components/time-tracking/pomodoro-widget";
 import { ManualEntryForm } from "@/components/time-tracking/manual-entry-form";
 import { StatsCards } from "@/components/time-tracking/stats-cards";
 import { RecentEntries } from "@/components/time-tracking/recent-entries";
-import type { UserPreferences } from "@/types/database";
 
 export const metadata: Metadata = { title: "Time Tracking — DevOS" };
 
 export default async function TimeTrackingPage() {
   const { supabase, user } = await requireUser();
 
-  const [summary, projects, preferencesRes] = await Promise.all([
+  const [summary, projects, preferences] = await Promise.all([
     getTimeTrackingSummary(supabase, user.id),
     getProjectOptions(supabase, user.id),
-    supabase.from("user_preferences").select("*").eq("user_id", user.id).single(),
+    getOrCreateUserPreferences(supabase, user.id),
   ]);
-
-  const preferences = preferencesRes.data as UserPreferences;
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 p-4 sm:p-6">
