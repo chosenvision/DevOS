@@ -4,8 +4,53 @@ import { revalidatePath } from "next/cache";
 
 import { requireUser } from "@/services/auth";
 import { resourceSchema } from "@/lib/validations/career";
+import { COURSE_TEMPLATES } from "@/lib/templates/course-templates";
 
 export type ActionState = { error?: string; success?: string };
+
+/** Instantiates a course template — inserts the course pre-filled with total_lessons, then its full lesson checklist in one batch. */
+export async function createCourseFromTemplate(templateId: string): Promise<ActionState> {
+  const { supabase, user } = await requireUser();
+
+  const template = COURSE_TEMPLATES.find((t) => t.id === templateId);
+  if (!template) {
+    return { error: "Template not found." };
+  }
+
+  const { data: course, error } = await supabase
+    .from("courses")
+    .insert({
+      user_id: user.id,
+      name: template.name,
+      platform: template.platform,
+      url: template.url,
+      status: "not_started",
+      total_lessons: template.lessons.length,
+      completed_lessons: 0,
+    })
+    .select("id")
+    .single();
+
+  if (error || !course) {
+    return { error: error?.message ?? "Could not create course." };
+  }
+
+  const { error: lessonsError } = await supabase.from("course_lessons").insert(
+    template.lessons.map((title, i) => ({
+      user_id: user.id,
+      course_id: course.id,
+      title,
+      sort_order: i,
+    }))
+  );
+
+  if (lessonsError) {
+    return { error: lessonsError.message };
+  }
+
+  revalidatePath("/learning/courses");
+  return { success: `Added "${template.name}" with ${template.lessons.length} lessons.` };
+}
 
 export async function createResource(_prevState: ActionState, formData: FormData): Promise<ActionState> {
   const { supabase, user } = await requireUser();
