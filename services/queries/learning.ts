@@ -5,10 +5,11 @@ import type { Certification, Course, Resource, Roadmap, RoadmapStep, Skill } fro
 export async function getCourses(supabase: SupabaseClient, userId: string): Promise<Course[]> {
   const { data } = await supabase
     .from("courses")
-    .select("*")
+    .select("*, lessons:course_lessons(*)")
     .eq("user_id", userId)
-    .order("updated_at", { ascending: false });
-  return (data as Course[]) ?? [];
+    .order("updated_at", { ascending: false })
+    .order("sort_order", { foreignTable: "course_lessons", ascending: true });
+  return (data as unknown as Course[]) ?? [];
 }
 
 export async function getSkills(supabase: SupabaseClient, userId: string): Promise<Skill[]> {

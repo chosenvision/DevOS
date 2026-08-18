@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Minus, Plus, Target, Trash2 } from "lucide-react";
+import { ListChecks, Minus, Plus, Target, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
+import { GoalMilestonesDialog } from "@/components/habits/goal-milestones-dialog";
 import { createGoal, updateGoalProgress, deleteGoal } from "@/services/actions/habits";
 import { GOAL_STATUS_LABEL } from "@/lib/constants";
 import { formatShortDate } from "@/lib/utils";
@@ -27,6 +28,9 @@ const PERIOD_LABEL: Record<GoalPeriod, string> = {
 };
 
 function GoalCard({ goal }: { goal: Goal }) {
+  const [milestonesOpen, setMilestonesOpen] = React.useState(false);
+  const hasMilestones = (goal.milestones?.length ?? 0) > 0;
+
   return (
     <Card className="gap-2 py-3">
       <div className="flex items-start justify-between gap-2 px-4">
@@ -46,16 +50,29 @@ function GoalCard({ goal }: { goal: Goal }) {
         <Progress value={goal.progress} />
       </div>
       <div className="flex items-center justify-between px-4">
-        <div className="flex gap-1">
-          <Button size="icon" variant="outline" className="size-6" onClick={() => updateGoalProgress(goal.id, Math.max(0, goal.progress - 10))} aria-label="Decrease progress">
-            <Minus className="size-3" />
-          </Button>
-          <Button size="icon" variant="outline" className="size-6" onClick={() => updateGoalProgress(goal.id, Math.min(100, goal.progress + 10))} aria-label="Increase progress">
-            <Plus className="size-3" />
-          </Button>
+        <div className="flex items-center gap-1">
+          {hasMilestones ? (
+            <Button size="sm" variant="outline" className="h-6 gap-1 px-2 text-xs" onClick={() => setMilestonesOpen(true)}>
+              <ListChecks className="size-3" />
+              {goal.milestones!.filter((m) => m.is_completed).length}/{goal.milestones!.length}
+            </Button>
+          ) : (
+            <>
+              <Button size="icon" variant="outline" className="size-6" onClick={() => updateGoalProgress(goal.id, Math.max(0, goal.progress - 10))} aria-label="Decrease progress">
+                <Minus className="size-3" />
+              </Button>
+              <Button size="icon" variant="outline" className="size-6" onClick={() => updateGoalProgress(goal.id, Math.min(100, goal.progress + 10))} aria-label="Increase progress">
+                <Plus className="size-3" />
+              </Button>
+              <Button size="icon" variant="ghost" className="size-6" onClick={() => setMilestonesOpen(true)} aria-label="Manage milestones">
+                <ListChecks className="size-3" />
+              </Button>
+            </>
+          )}
         </div>
         {goal.deadline && <span className="text-xs text-muted-foreground">Due {formatShortDate(goal.deadline)}</span>}
       </div>
+      <GoalMilestonesDialog goal={goal} open={milestonesOpen} onOpenChange={setMilestonesOpen} />
     </Card>
   );
 }

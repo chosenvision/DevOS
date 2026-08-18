@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { Bookmark, CodeSnippet, Idea, Note } from "@/types/database";
+import type { Bookmark, CodeSnippet, DailyLog, Idea, Note, NoteFolder } from "@/types/database";
 
 export async function getNotes(supabase: SupabaseClient, userId: string): Promise<Note[]> {
   const { data } = await supabase
@@ -15,6 +15,25 @@ export async function getNotes(supabase: SupabaseClient, userId: string): Promis
 export async function getNote(supabase: SupabaseClient, userId: string, id: string): Promise<Note | null> {
   const { data } = await supabase.from("notes").select("*").eq("user_id", userId).eq("id", id).maybeSingle();
   return (data as Note) ?? null;
+}
+
+export async function getNoteFolders(supabase: SupabaseClient, userId: string): Promise<NoteFolder[]> {
+  const { data } = await supabase
+    .from("note_folders")
+    .select("*")
+    .eq("user_id", userId)
+    .order("sort_order", { ascending: true });
+  return (data as NoteFolder[]) ?? [];
+}
+
+export async function getDailyLogs(supabase: SupabaseClient, userId: string, limit = 30): Promise<DailyLog[]> {
+  const { data } = await supabase
+    .from("daily_logs")
+    .select("*")
+    .eq("user_id", userId)
+    .order("log_date", { ascending: false })
+    .limit(limit);
+  return (data as DailyLog[]) ?? [];
 }
 
 export async function getSnippets(supabase: SupabaseClient, userId: string): Promise<CodeSnippet[]> {

@@ -322,20 +322,49 @@ Interview Prep, Coding Practice) — it's extended in place.
   messages outside their restricted partner program — that's why job data comes from a
   separate source (above), not from this connection.
 
-**Remaining phases — architecture/UI scaffolded, marked Connection Required:**
+- **Google OAuth foundation** (`google_connections`, `/settings/integrations`) — a *custom* OAuth
+  flow (`app/auth/google/connect/route.ts` → Google's consent screen → `app/auth/google/callback/
+  route.ts`), not Supabase's `linkIdentity` like GitHub/LinkedIn. It has to be custom because
+  Career Inbox and interview scheduling need offline access (a refresh token) and specific
+  Gmail/Calendar scopes — Supabase's generic Google sign-in only exposes provider tokens
+  transiently on the client at sign-in and doesn't request extra scopes. The refresh token is
+  encrypted at rest (AES-256-GCM, `lib/crypto/token-encryption.ts`, key from
+  `TOKEN_ENCRYPTION_KEY`) and never sent to the client — `components/settings/google-connect.tsx`
+  is typed to a summary shape that excludes the encrypted column entirely, not just hidden in the
+  UI. `lib/google/token-manager.ts` exchanges it for a fresh access token on demand (nothing
+  longer-lived than the refresh token is ever stored). **This is plumbing, not the feature**: it
+  gets you to a connected state with Gmail/Calendar scopes granted, but nothing reads your inbox
+  or touches your calendar yet — that's the Career Inbox / Scheduling Assistant UI, still to come.
 
-| Phase | What it needs | Where |
+## 9. Every table has an in-app editor
+
+Four tables shipped with the schema in the original build but no UI ever read or wrote them —
+closing that gap so every piece of user data is editable inside DevOS itself, never only via the
+Supabase dashboard:
+
+- **Course lessons** (`course_lessons`) — a per-course checklist (Learning → a course card's
+  "Lessons" button). Checking lessons off recomputes the course's `progress`/`completed_lessons`
+  automatically; the old manual +/-10% buttons still work for courses with no checklist.
+- **Goal milestones** (`goal_milestones`) — identical pattern on Analytics → Goals.
+- **Note folders** (`note_folders`) — a filter/organize row above the Notes grid: create, filter,
+  delete (deleting a folder unfiles its notes rather than deleting them — `ON DELETE SET NULL`).
+  The note-creation dialog picks a folder when any exist.
+- **Daily Journal** (`daily_logs`, `/notes/journal`) — today's entry (what you worked on,
+  learned, blockers, tomorrow's plan) plus a history list. Upserts on the table's existing
+  `unique (user_id, log_date)` constraint, so revisiting today just updates the same row.
+
+**Remaining work — architecture/UI scaffolded or foundation-only, marked Connection Required:**
+
+| What | What it needs | Where |
 | --- | --- | --- |
 | Resume Studio tailoring, cover letters, answer library | `ANTHROPIC_API_KEY` (or another AI provider) | `/settings/ai` |
-| Career Inbox, email classification, AI drafts | Gmail OAuth + AI provider | `/career/inbox`, `/settings/integrations` |
-| Interview scheduling from email | Google Calendar OAuth | `/settings/integrations` |
-| Recruiter CRM / follow-ups / assessments | — | **built in Phase 1**, see above |
+| Career Inbox UI (read/classify/draft) | Google connected (✅ above) + AI provider | `/career/inbox` |
+| Scheduling Assistant UI (availability, event creation) | Google connected (✅ above) | `/career/interviews` |
 | Job discovery beyond Arbeitnow, job alerts actually firing | An additional job board API (`JOB_BOARD_API_KEY`) | `/career/job-search`, `/settings/integrations` |
 | Automation rules, audit log, full AI agent | AI provider + all of the above | — |
 
 Required env vars for each are documented in `.env.local.example`. No token is ever exposed to
-the client — every OAuth exchange and AI call would run server-side (Server Action or Route
-Handler), matching how the existing GitHub identity link already works.
+the client — every OAuth exchange and AI call runs server-side (Server Action or Route Handler).
 
 ## What's not built
 
@@ -350,9 +379,8 @@ Being direct about scope, since "production-ready" claims are only useful if the
   LLM API key this environment doesn't have; `/settings/ai` is an honest placeholder, not a
   working feature. The data model (projects, skills, notes) is already shaped to make these
   straightforward to add later — they'd be new Server Actions calling an LLM, not a schema change.
-- **Dev Log (§29) and Daily Journal (§28)** — `daily_logs` and `activity_log` exist and are
-  populated (activity_log, automatically; daily_logs, not yet wired to any UI), but there's no
-  page rendering either as a timeline/journal yet.
+- **Dev Log (§29)** — `activity_log` is populated automatically but has no timeline UI yet.
+  (Daily Journal, §28, is now built — see `/notes/journal`.)
 - **Automatic notifications** — the `notifications` table and the bell-icon UI both exist and
   work, but nothing currently *writes* rows into it (e.g. a "task due tomorrow" reminder). It
   needs a scheduled job (Supabase cron / Edge Function) that doesn't exist in this codebase.
@@ -365,6 +393,3 @@ Being direct about scope, since "production-ready" claims are only useful if the
   standalone rows (projects, tasks, notes, and similar) under new IDs but intentionally drops
   cross-references (a task's `project_id`, a job application's `company_id`) rather than risk
   silently wiring them to the wrong record. Documented in the UI itself, not just here.
-- **Course lessons, goal milestones, note folders** — the tables exist with working RLS; no UI
-  reads or writes them yet (courses track progress as a single percentage rather than per-lesson
-  checkboxes; notes aren't organized into folders).

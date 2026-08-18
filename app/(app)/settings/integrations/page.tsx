@@ -1,37 +1,47 @@
 import type { Metadata } from "next";
-import { Mail, CalendarDays } from "lucide-react";
 
 import { requireUser } from "@/services/auth";
 import { GithubConnect } from "@/components/settings/github-connect";
 import { LinkedinConnect } from "@/components/settings/linkedin-connect";
-import { IntegrationPlaceholderCard } from "@/components/settings/integration-placeholder-card";
+import { GoogleConnect, type GoogleConnectionSummary } from "@/components/settings/google-connect";
 import type { GithubConnection, LinkedinConnection } from "@/types/database";
 
 export const metadata: Metadata = { title: "Integrations — DevOS" };
 
-export default async function IntegrationsSettingsPage() {
+export default async function IntegrationsSettingsPage({ searchParams }: PageProps<"/settings/integrations">) {
   const { supabase, user } = await requireUser();
-  const [{ data: githubConnection }, { data: linkedinConnection }] = await Promise.all([
+  const params = await searchParams;
+  const error = typeof params.error === "string" ? params.error : undefined;
+  const connected = typeof params.connected === "string" ? params.connected : undefined;
+
+  const [{ data: githubConnection }, { data: linkedinConnection }, { data: googleConnection }] = await Promise.all([
     supabase.from("github_connections").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("linkedin_connections").select("*").eq("user_id", user.id).maybeSingle(),
+    supabase
+      .from("google_connections")
+      .select("google_email, google_name, avatar_url, gmail_connected, calendar_connected")
+      .eq("user_id", user.id)
+      .maybeSingle(),
   ]);
 
   return (
     <div className="space-y-4">
+      {error && (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+      {connected && !error && (
+        <p className="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-[oklch(0.4_0.12_155)] dark:text-success">
+          Connected successfully.
+        </p>
+      )}
+
       <GithubConnect connection={githubConnection as GithubConnection | null} />
       <LinkedinConnect connection={linkedinConnection as LinkedinConnection | null} />
-
-      <IntegrationPlaceholderCard
-        name="Gmail"
-        icon={Mail}
-        description="Powers the Career Inbox — classifying recruiter emails and drafting natural-sounding replies for your approval."
-        requirements={["GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET", "Gmail API scope: gmail.readonly + gmail.compose"]}
-      />
-      <IntegrationPlaceholderCard
-        name="Google Calendar"
-        icon={CalendarDays}
-        description="Lets DevOS check your availability and create interview events directly from a scheduling email."
-        requirements={["GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET", "Calendar API scope: calendar.events"]}
+      <GoogleConnect
+        connection={googleConnection as GoogleConnectionSummary | null}
+        configured={Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)}
       />
     </div>
   );

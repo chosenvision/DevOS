@@ -268,6 +268,17 @@ export interface Course {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  lessons?: CourseLesson[];
+}
+
+export interface CourseLesson {
+  id: string;
+  course_id: string;
+  user_id: string;
+  title: string;
+  is_completed: boolean;
+  sort_order: number;
+  created_at: string;
 }
 
 export interface Skill {
@@ -573,6 +584,19 @@ export interface LinkedinConnection {
   last_synced_at: string | null;
 }
 
+export interface GoogleConnection {
+  user_id: string;
+  google_email: string;
+  google_name: string | null;
+  avatar_url: string | null;
+  encrypted_refresh_token: string;
+  granted_scopes: string[];
+  gmail_connected: boolean;
+  calendar_connected: boolean;
+  connected_at: string;
+  last_synced_at: string | null;
+}
+
 export interface CalendarEvent {
   id: string;
   user_id: string;
@@ -629,6 +653,7 @@ export interface Goal {
   related_skill_id: string | null;
   created_at: string;
   updated_at: string;
+  milestones?: GoalMilestone[];
 }
 
 export interface GoalMilestone {

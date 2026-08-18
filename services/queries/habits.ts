@@ -45,8 +45,9 @@ export async function getHabits(supabase: SupabaseClient, userId: string): Promi
 export async function getGoals(supabase: SupabaseClient, userId: string): Promise<Goal[]> {
   const { data } = await supabase
     .from("goals")
-    .select("*")
+    .select("*, milestones:goal_milestones(*)")
     .eq("user_id", userId)
-    .order("deadline", { ascending: true, nullsFirst: false });
-  return (data as Goal[]) ?? [];
+    .order("deadline", { ascending: true, nullsFirst: false })
+    .order("sort_order", { foreignTable: "goal_milestones", ascending: true });
+  return (data as unknown as Goal[]) ?? [];
 }

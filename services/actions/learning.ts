@@ -268,3 +268,85 @@ export async function deleteResource(resourceId: string) {
   revalidatePath("/learning/resources");
   return { error: error?.message };
 }
+
+// -- Course lessons ----------------------------------------------------------
+
+/** Recomputes a course's progress/lesson counts from its checklist whenever a lesson changes. */
+async function syncCourseProgressFromLessons(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  userId: string,
+  courseId: string
+) {
+  const { data: lessons } = await supabase
+    .from("course_lessons")
+    .select("is_completed")
+    .eq("course_id", courseId)
+    .eq("user_id", userId);
+
+  const list = lessons ?? [];
+  if (list.length === 0) return;
+
+  const completed = list.filter((l) => l.is_completed).length;
+  const progress = Math.round((completed / list.length) * 100);
+
+  await supabase
+    .from("courses")
+    .update({
+      total_lessons: list.length,
+      completed_lessons: completed,
+      progress,
+      status: progress >= 100 ? "completed" : progress > 0 ? "in_progress" : undefined,
+      completed_at: progress >= 100 ? new Date().toISOString() : null,
+    })
+    .eq("id", courseId)
+    .eq("user_id", userId);
+}
+
+export async function createCourseLesson(courseId: string, title: string): Promise<ActionState> {
+  const { supabase, user } = await requireUser();
+  const trimmed = title.trim();
+  if (!trimmed) return { error: "Lesson title is required." };
+
+  const { data: last } = await supabase
+    .from("course_lessons")
+    .select("sort_order")
+    .eq("course_id", courseId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error } = await supabase.from("course_lessons").insert({
+    user_id: user.id,
+    course_id: courseId,
+    title: trimmed,
+    sort_order: (last?.sort_order ?? -1) + 1,
+  });
+
+  if (error) return { error: error.message };
+
+  await syncCourseProgressFromLessons(supabase, user.id, courseId);
+  revalidatePath("/learning/courses");
+  return { success: "Lesson added." };
+}
+
+export async function toggleCourseLesson(lessonId: string, courseId: string, isCompleted: boolean) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase
+    .from("course_lessons")
+    .update({ is_completed: isCompleted })
+    .eq("id", lessonId)
+    .eq("user_id", user.id);
+
+  if (!error) await syncCourseProgressFromLessons(supabase, user.id, courseId);
+  revalidatePath("/learning/courses");
+  return { error: error?.message };
+}
+
+export async function deleteCourseLesson(lessonId: string, courseId: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("course_lessons").delete().eq("id", lessonId).eq("user_id", user.id);
+
+  if (!error) await syncCourseProgressFromLessons(supabase, user.id, courseId);
+  revalidatePath("/learning/courses");
+  return { error: error?.message };
+}

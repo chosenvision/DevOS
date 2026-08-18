@@ -2,6 +2,7 @@ import { SubNav } from "@/components/shared/sub-nav";
 
 const NAV = [
   { label: "All Notes", href: "/notes" },
+  { label: "Journal", href: "/notes/journal" },
   { label: "Snippets", href: "/notes/snippets" },
   { label: "Ideas", href: "/notes/ideas" },
   { label: "Bookmarks", href: "/notes/bookmarks" },

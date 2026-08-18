@@ -118,3 +118,79 @@ export async function deleteGoal(goalId: string) {
   revalidatePath("/analytics/goals");
   return { error: error?.message };
 }
+
+// -- Goal milestones -----------------------------------------------------
+
+/** Recomputes a goal's progress from its milestone checklist whenever a milestone changes. */
+async function syncGoalProgressFromMilestones(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  userId: string,
+  goalId: string
+) {
+  const { data: milestones } = await supabase
+    .from("goal_milestones")
+    .select("is_completed")
+    .eq("goal_id", goalId)
+    .eq("user_id", userId);
+
+  const list = milestones ?? [];
+  if (list.length === 0) return;
+
+  const completed = list.filter((m) => m.is_completed).length;
+  const progress = Math.round((completed / list.length) * 100);
+
+  await supabase
+    .from("goals")
+    .update({ progress, status: progress >= 100 ? "completed" : "in_progress" })
+    .eq("id", goalId)
+    .eq("user_id", userId);
+}
+
+export async function createGoalMilestone(goalId: string, title: string): Promise<ActionState> {
+  const { supabase, user } = await requireUser();
+  const trimmed = title.trim();
+  if (!trimmed) return { error: "Milestone title is required." };
+
+  const { data: last } = await supabase
+    .from("goal_milestones")
+    .select("sort_order")
+    .eq("goal_id", goalId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { error } = await supabase.from("goal_milestones").insert({
+    user_id: user.id,
+    goal_id: goalId,
+    title: trimmed,
+    sort_order: (last?.sort_order ?? -1) + 1,
+  });
+
+  if (error) return { error: error.message };
+
+  await syncGoalProgressFromMilestones(supabase, user.id, goalId);
+  revalidatePath("/analytics/goals");
+  return { success: "Milestone added." };
+}
+
+export async function toggleGoalMilestone(milestoneId: string, goalId: string, isCompleted: boolean) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase
+    .from("goal_milestones")
+    .update({ is_completed: isCompleted })
+    .eq("id", milestoneId)
+    .eq("user_id", user.id);
+
+  if (!error) await syncGoalProgressFromMilestones(supabase, user.id, goalId);
+  revalidatePath("/analytics/goals");
+  return { error: error?.message };
+}
+
+export async function deleteGoalMilestone(milestoneId: string, goalId: string) {
+  const { supabase, user } = await requireUser();
+  const { error } = await supabase.from("goal_milestones").delete().eq("id", milestoneId).eq("user_id", user.id);
+
+  if (!error) await syncGoalProgressFromMilestones(supabase, user.id, goalId);
+  revalidatePath("/analytics/goals");
+  return { error: error?.message };
+}
