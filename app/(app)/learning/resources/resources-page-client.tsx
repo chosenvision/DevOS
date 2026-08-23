@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { createResource, updateResourceStatus, deleteResource } from "@/services/actions/learning";
+import { runAction } from "@/lib/action-feedback";
 import type { Resource, ResourceStatus } from "@/types/database";
 
 const STATUS_LABEL: Record<ResourceStatus, string> = {
@@ -72,13 +73,13 @@ export function ResourcesPageClient({ resources }: { resources: Resource[] }) {
             <Card key={r.id} className="gap-2 py-3">
               <div className="flex items-start justify-between gap-2 px-4">
                 <p className="min-w-0 truncate text-sm font-medium">{r.title}</p>
-                <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteResource(r.id)} aria-label="Remove resource">
+                <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteResource(r.id))} aria-label="Remove resource">
                   <Trash2 className="size-3.5" />
                 </Button>
               </div>
               {r.description && <p className="line-clamp-2 px-4 text-xs text-muted-foreground">{r.description}</p>}
               <div className="flex items-center justify-between px-4">
-                <Select value={r.status} onValueChange={(v) => updateResourceStatus(r.id, v)}>
+                <Select value={r.status} onValueChange={(v) => runAction(() => updateResourceStatus(r.id, v))}>
                   <SelectTrigger size="sm" className="h-7 w-36 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(STATUS_LABEL).map(([value, label]) => (

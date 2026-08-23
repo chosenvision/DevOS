@@ -67,7 +67,9 @@ export function PomodoroWidget({ preferences }: { preferences: UserPreferences }
       fd.set("hours", "0");
       fd.set("minutes", String(settings.focus));
       fd.set("description", "Pomodoro focus session");
-      createManualTimeEntry({}, fd);
+      createManualTimeEntry({}, fd).then((res) => {
+        if (res.error) toast.error(res.error);
+      });
 
       const nextPhase: Phase = nextCount % settings.sessionsBeforeLong === 0 ? "long_break" : "short_break";
       setPhase(nextPhase);

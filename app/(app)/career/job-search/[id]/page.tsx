@@ -4,7 +4,8 @@ import type { Metadata } from "next";
 import { ArrowLeft, MapPin, DollarSign, Calendar, ExternalLink, Check, AlertTriangle } from "lucide-react";
 
 import { requireUser } from "@/services/auth";
-import { getJobListing } from "@/services/queries/career";
+import { getJobListing, getResumes } from "@/services/queries/career";
+import { isAiConfigured } from "@/lib/ai/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: PageProps<"/career/job-search
 export default async function JobListingDetailPage({ params }: PageProps<"/career/job-search/[id]">) {
   const { id } = await params;
   const { supabase, user } = await requireUser();
-  const job = await getJobListing(supabase, user.id, id);
+  const [job, resumes] = await Promise.all([getJobListing(supabase, user.id, id), getResumes(supabase, user.id)]);
 
   if (!job) notFound();
 
@@ -88,7 +89,13 @@ export default async function JobListingDetailPage({ params }: PageProps<"/caree
         )}
       </div>
 
-      <JobDetailActions jobId={job.id} alreadyApplied={job.status === "applied"} />
+      <JobDetailActions
+        jobId={job.id}
+        applicationId={job.application_id}
+        alreadyApplied={job.status === "applied"}
+        resumes={resumes}
+        aiConfigured={isAiConfigured()}
+      />
 
       {job.match_score != null ? (
         <div className="grid gap-4 lg:grid-cols-2">

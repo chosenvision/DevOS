@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { createInterviewQuestion, deleteInterviewQuestion } from "@/services/actions/interview-prep";
+import { runAction } from "@/lib/action-feedback";
 import { DIFFICULTY_LABEL } from "@/lib/constants";
 import type { InterviewCategory, InterviewQuestion } from "@/types/database";
 
@@ -71,7 +72,7 @@ export function InterviewQuestionsList({ questions }: { questions: InterviewQues
             <Card key={q.id} className="gap-1.5 py-3">
               <div className="flex items-start justify-between gap-2 px-4">
                 <p className="text-sm font-medium">{q.question}</p>
-                <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteInterviewQuestion(q.id)} aria-label="Delete question">
+                <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteInterviewQuestion(q.id))} aria-label="Delete question">
                   <Trash2 className="size-3.5" />
                 </Button>
               </div>

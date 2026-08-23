@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { EmptyState } from "@/components/shared/empty-state";
 import { CodeBlock } from "@/components/notes/code-block";
 import { createSnippet, toggleSnippetFavorite, deleteSnippet } from "@/services/actions/snippets";
+import { runAction } from "@/lib/action-feedback";
 import type { CodeSnippet } from "@/types/database";
 
 const LANGUAGES = ["JavaScript", "TypeScript", "Python", "PHP", "SQL", "HTML", "CSS", "Java", "C++", "Shell", "JSON"];
@@ -47,12 +48,12 @@ function SnippetCard({ snippet }: { snippet: CodeSnippet }) {
             size="icon"
             variant="ghost"
             className="size-6"
-            onClick={() => toggleSnippetFavorite(snippet.id, !snippet.is_favorite)}
+            onClick={() => runAction(() => toggleSnippetFavorite(snippet.id, !snippet.is_favorite))}
             aria-label="Favorite"
           >
             <Star className={snippet.is_favorite ? "size-3.5 fill-current text-warning" : "size-3.5"} />
           </Button>
-          <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteSnippet(snippet.id)} aria-label="Delete snippet">
+          <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteSnippet(snippet.id))} aria-label="Delete snippet">
             <Trash2 className="size-3.5" />
           </Button>
         </div>

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
 import { Eye, Pencil, Pin, PinOff, Star, Trash2 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -38,7 +39,9 @@ export function NoteEditor({ note }: { note: Note }) {
   function scheduleSave(next: { title?: string; content?: string; tags?: string[] }) {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      updateNote(note.id, next);
+      updateNote(note.id, next).then((res) => {
+        if (res.error) toast.error(res.error);
+      });
     }, 800);
   }
 
@@ -59,7 +62,11 @@ export function NoteEditor({ note }: { note: Note }) {
             variant="ghost"
             onClick={async () => {
               setPinned((p) => !p);
-              await toggleNoteFlag(note.id, "is_pinned", !pinned);
+              const res = await toggleNoteFlag(note.id, "is_pinned", !pinned);
+              if (res.error) {
+                setPinned((p) => !p);
+                toast.error(res.error);
+              }
             }}
             aria-label={pinned ? "Unpin note" : "Pin note"}
           >
@@ -70,7 +77,11 @@ export function NoteEditor({ note }: { note: Note }) {
             variant="ghost"
             onClick={async () => {
               setFavorite((f) => !f);
-              await toggleNoteFlag(note.id, "is_favorite", !favorite);
+              const res = await toggleNoteFlag(note.id, "is_favorite", !favorite);
+              if (res.error) {
+                setFavorite((f) => !f);
+                toast.error(res.error);
+              }
             }}
             aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
           >
@@ -91,8 +102,9 @@ export function NoteEditor({ note }: { note: Note }) {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={async () => {
-                    await deleteNote(note.id);
-                    router.push("/notes");
+                    const res = await deleteNote(note.id);
+                    if (res.error) toast.error(res.error);
+                    else router.push("/notes");
                   }}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >

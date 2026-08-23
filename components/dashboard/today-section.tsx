@@ -4,6 +4,8 @@ import * as React from "react";
 import Link from "next/link";
 import { CalendarClock, MessagesSquare, ListTodo } from "lucide-react";
 
+import { toast } from "sonner";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -24,8 +26,12 @@ function TaskRow({ task }: { task: Task }) {
         disabled={pending}
         onCheckedChange={(checked) => {
           setCompleted(!!checked);
-          startTransition(() => {
-            toggleTaskCompleted(task.id, !!checked);
+          startTransition(async () => {
+            const res = await toggleTaskCompleted(task.id, !!checked);
+            if (res.error) {
+              setCompleted(!checked);
+              toast.error(res.error);
+            }
           });
         }}
       />

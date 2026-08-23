@@ -415,6 +415,9 @@ export interface Resume {
   is_portfolio_mode: boolean;
   content: ResumeContent;
   file_path: string | null;
+  parent_resume_id: string | null;
+  tailored_for_job_id: string | null;
+  change_summary: string[];
   created_at: string;
   updated_at: string;
 }
@@ -568,11 +571,28 @@ export interface PortfolioProject {
 export interface GithubConnection {
   user_id: string;
   github_username: string;
+  access_token_encrypted: string | null;
   avatar_url: string | null;
   public_repos: number | null;
   followers: number | null;
+  recent_commits: { date: string; count: number }[];
   connected_at: string;
   last_synced_at: string | null;
+}
+
+export interface GithubRepo {
+  id: string;
+  user_id: string;
+  project_id: string | null;
+  repo_name: string;
+  full_name: string;
+  description: string | null;
+  stars: number;
+  forks: number;
+  language: string | null;
+  url: string;
+  is_linked: boolean;
+  synced_at: string;
 }
 
 export interface LinkedinConnection {

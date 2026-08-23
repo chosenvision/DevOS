@@ -15,6 +15,7 @@ import { KanbanBoard, type KanbanColumn } from "@/components/shared/kanban-board
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createIdea, updateIdeaStatus, convertIdeaToProject } from "@/services/actions/ideas";
+import { runAction } from "@/lib/action-feedback";
 import { IDEA_STATUS_LABEL, DIFFICULTY_LABEL } from "@/lib/constants";
 import type { Idea, IdeaStatus } from "@/types/database";
 
@@ -75,7 +76,7 @@ export function IdeasPageClient({ ideas }: { ideas: Idea[] }) {
             {!idea.converted_project_id && (
               <button
                 className="flex items-center gap-1 px-3 text-xs text-primary hover:underline"
-                onClick={() => convertIdeaToProject(idea.id)}
+                onClick={() => runAction(() => convertIdeaToProject(idea.id))}
               >
                 Convert to project <ArrowRight className="size-3" />
               </button>

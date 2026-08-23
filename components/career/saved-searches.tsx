@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { createJobSearch, deleteJobSearch, toggleJobSearchNotify } from "@/services/actions/career";
+import { runAction } from "@/lib/action-feedback";
 import type { JobSearch } from "@/types/database";
 
 export function SavedSearches({ searches }: { searches: JobSearch[] }) {
@@ -58,7 +59,7 @@ export function SavedSearches({ searches }: { searches: JobSearch[] }) {
                 className="size-6"
                 aria-label={s.notify_on_match ? "Alerts on" : "Alerts off"}
                 title={s.notify_on_match ? "Alerts on (requires job discovery connection)" : "Alerts off"}
-                onClick={() => toggleJobSearchNotify(s.id, !s.notify_on_match)}
+                onClick={() => runAction(() => toggleJobSearchNotify(s.id, !s.notify_on_match))}
               >
                 {s.notify_on_match ? <Bell className="size-3.5" /> : <BellOff className="size-3.5 text-muted-foreground" />}
               </Button>
@@ -67,7 +68,7 @@ export function SavedSearches({ searches }: { searches: JobSearch[] }) {
                 variant="ghost"
                 className="size-6"
                 aria-label="Delete search"
-                onClick={() => deleteJobSearch(s.id)}
+                onClick={() => runAction(() => deleteJobSearch(s.id))}
               >
                 <Trash2 className="size-3.5" />
               </Button>

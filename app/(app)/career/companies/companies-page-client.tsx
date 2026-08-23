@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { createCompany, deleteCompany } from "@/services/actions/companies";
+import { runAction } from "@/lib/action-feedback";
 import type { Company } from "@/types/database";
 
 export function CompaniesPageClient({ companies }: { companies: Company[] }) {
@@ -57,7 +58,7 @@ export function CompaniesPageClient({ companies }: { companies: Company[] }) {
                     {[c.industry, c.location].filter(Boolean).join(" · ") || "—"}
                   </p>
                 </div>
-                <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteCompany(c.id)} aria-label="Remove company">
+                <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteCompany(c.id))} aria-label="Remove company">
                   <Trash2 className="size-3.5" />
                 </Button>
               </div>

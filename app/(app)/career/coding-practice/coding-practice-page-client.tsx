@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { createCodingProblem, markProblemAttempted, deleteCodingProblem } from "@/services/actions/coding-practice";
+import { runAction } from "@/lib/action-feedback";
 import { CODING_PLATFORMS, DIFFICULTY_LABEL } from "@/lib/constants";
 import { formatShortDate } from "@/lib/utils";
 import type { CodingProblem, DifficultyLevel } from "@/types/database";
@@ -34,7 +35,7 @@ function ProblemCard({ problem }: { problem: CodingProblem }) {
           <p className="truncate text-sm font-medium">{problem.name}</p>
           <p className="text-xs text-muted-foreground">{problem.platform}</p>
         </div>
-        <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteCodingProblem(problem.id)} aria-label="Delete problem">
+        <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteCodingProblem(problem.id))} aria-label="Delete problem">
           <Trash2 className="size-3.5" />
         </Button>
       </div>
@@ -47,10 +48,10 @@ function ProblemCard({ problem }: { problem: CodingProblem }) {
       </div>
       <div className="flex items-center justify-between px-4">
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={() => markProblemAttempted(problem.id, true)}>
+          <Button size="sm" variant="outline" onClick={() => runAction(() => markProblemAttempted(problem.id, true))}>
             Solved
           </Button>
-          <Button size="sm" variant="outline" onClick={() => markProblemAttempted(problem.id, false)}>
+          <Button size="sm" variant="outline" onClick={() => runAction(() => markProblemAttempted(problem.id, false))}>
             Attempted
           </Button>
         </div>

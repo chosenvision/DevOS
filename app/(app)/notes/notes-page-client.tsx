@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { createNote, createNoteFolder, deleteNoteFolder } from "@/services/actions/notes";
+import { runAction } from "@/lib/action-feedback";
 import { cn } from "@/lib/utils";
 import { formatShortDate, truncate } from "@/lib/utils";
 import type { Note, NoteFolder, NoteType } from "@/types/database";
@@ -116,7 +117,7 @@ export function NotesPageClient({ notes, folders }: { notes: Note[]; folders: No
               className="absolute top-1/2 right-1.5 hidden -translate-y-1/2 text-muted-foreground hover:text-destructive group-hover:block"
               onClick={() => {
                 if (folderFilter === f.id) setFolderFilter("all");
-                deleteNoteFolder(f.id);
+                runAction(() => deleteNoteFolder(f.id));
               }}
             >
               <X className="size-3" />

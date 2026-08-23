@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { EmptyState } from "@/components/shared/empty-state";
 import { HabitHeatmap } from "@/components/analytics/habit-heatmap";
 import { createHabit, toggleHabitToday, deleteHabit } from "@/services/actions/habits";
+import { runAction } from "@/lib/action-feedback";
 import type { HabitWithStats } from "@/services/queries/habits";
 
 export function HabitsPageClient({ habits }: { habits: HabitWithStats[] }) {
@@ -64,7 +65,7 @@ export function HabitsPageClient({ habits }: { habits: HabitWithStats[] }) {
                 <div className="flex items-center gap-2.5">
                   <Checkbox
                     checked={doneToday}
-                    onCheckedChange={(checked) => toggleHabitToday(habit.id, !!checked)}
+                    onCheckedChange={(checked) => runAction(() => toggleHabitToday(habit.id, !!checked))}
                   />
                   <div>
                     <p className="text-sm font-medium">{habit.name}</p>
@@ -73,7 +74,7 @@ export function HabitsPageClient({ habits }: { habits: HabitWithStats[] }) {
                     </p>
                   </div>
                 </div>
-                <Button size="icon" variant="ghost" className="size-7" onClick={() => deleteHabit(habit.id)} aria-label="Archive habit">
+                <Button size="icon" variant="ghost" className="size-7" onClick={() => runAction(() => deleteHabit(habit.id))} aria-label="Archive habit">
                   <Trash2 className="size-3.5" />
                 </Button>
               </div>

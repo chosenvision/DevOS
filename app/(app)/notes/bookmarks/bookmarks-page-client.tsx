@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { createBookmark, deleteBookmark } from "@/services/actions/snippets";
+import { runAction } from "@/lib/action-feedback";
 import { formatShortDate } from "@/lib/utils";
 import type { Bookmark } from "@/types/database";
 
@@ -53,7 +54,7 @@ export function BookmarksPageClient({ bookmarks }: { bookmarks: Bookmark[] }) {
               <a href={b.url} target="_blank" rel="noreferrer" className="flex min-w-0 items-center gap-1.5 truncate text-sm font-medium hover:underline">
                 {b.title} <ExternalLink className="size-3 shrink-0" />
               </a>
-              <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteBookmark(b.id)} aria-label="Remove bookmark">
+              <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteBookmark(b.id))} aria-label="Remove bookmark">
                 <Trash2 className="size-3.5" />
               </Button>
             </div>

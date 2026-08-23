@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { createCertification, deleteCertification } from "@/services/actions/learning";
+import { runAction } from "@/lib/action-feedback";
 import { formatDate } from "@/lib/utils";
 import type { Certification } from "@/types/database";
 
@@ -50,7 +51,7 @@ export function CertificationsPageClient({ certifications }: { certifications: C
                     <p className="truncate text-sm font-medium">{cert.name}</p>
                     <p className="text-xs text-muted-foreground">{cert.provider}</p>
                   </div>
-                  <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteCertification(cert.id)} aria-label="Remove certification">
+                  <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteCertification(cert.id))} aria-label="Remove certification">
                     <Trash2 className="size-3.5" />
                   </Button>
                 </div>

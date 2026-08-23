@@ -335,6 +335,28 @@ Interview Prep, Coding Practice) — it's extended in place.
   longer-lived than the refresh token is ever stored). **This is plumbing, not the feature**: it
   gets you to a connected state with Gmail/Calendar scopes granted, but nothing reads your inbox
   or touches your calendar yet — that's the Career Inbox / Scheduling Assistant UI, still to come.
+- **GitHub real sync** (`lib/github/api.ts`, Settings → Integrations, Dashboard's GitHub Commits
+  card) — connecting GitHub now requests `public_repo` scope and the callback captures + encrypts
+  the OAuth token (`github_connections.access_token_encrypted`, same AES-256-GCM as Google above).
+  A sync (automatic on connect, manual "Sync now" after) pulls real repos into `github_repos`
+  (upserted on `(user_id, full_name)`, so a re-sync doesn't clobber `is_linked`/`project_id`) and
+  computes a 14-day commit-activity cache from the GitHub Events API into
+  `github_connections.recent_commits`. The Dashboard card reads that cache rather than calling
+  GitHub on every page load. Commit counts reflect GitHub's own ~90-day event retention and
+  whatever the token's scope can see — not a full commit-history query per repo, which isn't
+  worth the rate-limit cost for a summary card.
+- **AI resume tailoring & cover letters** (`lib/ai/resume-tailor.ts`, `lib/ai/cover-letter.ts`,
+  "Tailor Resume" / "Cover Letter" buttons on a job's detail page) — real, using
+  `ANTHROPIC_API_KEY` when set (`lib/ai/client.ts`, `isAiConfigured()` gates the UI to an honest
+  "needs a key" state otherwise). Tailoring is deliberately **not just a prompt instruction**: the
+  model gets the resume's actual JSON as its only source of facts and is told to only reorder/
+  reword/prioritize, but `validateNoInvention()` then diffs the result against the source and
+  *throws* if it introduces an employer, school, skill, or project that wasn't there — a fabricated
+  resume claim is a real-world harm, so this doesn't rely on the model simply behaving. Saved as a
+  new `resumes` row (`parent_resume_id`/`tailored_for_job_id`/`change_summary` — the source is
+  never modified). Cover letters follow the spec's "sounds like a person wrote it" tone rules (a
+  banned-phrase list, short paragraphs, one exclamation point max) and are shown in an editable
+  textarea before anything is saved.
 
 ## 9. Every table has an in-app editor
 
@@ -357,7 +379,7 @@ Supabase dashboard:
 
 | What | What it needs | Where |
 | --- | --- | --- |
-| Resume Studio tailoring, cover letters, answer library | `ANTHROPIC_API_KEY` (or another AI provider) | `/settings/ai` |
+| Career Agent answer library | `ANTHROPIC_API_KEY` (or another AI provider) | `/settings/ai` |
 | Career Inbox UI (read/classify/draft) | Google connected (✅ above) + AI provider | `/career/inbox` |
 | Scheduling Assistant UI (availability, event creation) | Google connected (✅ above) | `/career/interviews` |
 | Job discovery beyond Arbeitnow, job alerts actually firing | An additional job board API (`JOB_BOARD_API_KEY`) | `/career/job-search`, `/settings/integrations` |
@@ -370,15 +392,16 @@ the client — every OAuth exchange and AI call runs server-side (Server Action 
 
 Being direct about scope, since "production-ready" claims are only useful if they're accurate:
 
-- **Remaining Career Agent phases** (AI resume tailoring/cover letters, Career Inbox + email
-  drafting, interview scheduling, job alerts actually firing, automation rules) — see
-  "8. Career Agent" above for exactly what's built (including LinkedIn sign-in and live job
-  search) vs. Connection Required and why.
-- **AI features (spec §24–27, Weekly Review §27)** — no AI Assistant, AI Project Planner,
-  Learning Roadmap generator, Resume/Cover Letter writer, or Weekly Review page. These need an
-  LLM API key this environment doesn't have; `/settings/ai` is an honest placeholder, not a
-  working feature. The data model (projects, skills, notes) is already shaped to make these
-  straightforward to add later — they'd be new Server Actions calling an LLM, not a schema change.
+- **Remaining Career Agent phases** (Career Inbox + email drafting, interview scheduling, job
+  alerts actually firing, automation rules, answer library) — see "8. Career Agent" above for
+  exactly what's built (including LinkedIn sign-in, live job search, GitHub sync, AI resume
+  tailoring, and AI cover letters) vs. Connection Required and why.
+- **AI features (spec §24–27, Weekly Review §27)** — Resume tailoring and cover letter generation
+  are built (see "8. Career Agent"). Still missing: AI Assistant, AI Project Planner, Learning
+  Roadmap generator, or Weekly Review page. These need an LLM API key this environment doesn't
+  have; `/settings/ai` shows an honest "not connected" state when unset, not a fake success. The
+  data model (projects, skills, notes) is already shaped to make these straightforward to add
+  later — they'd be new Server Actions calling an LLM, not a schema change.
 - **Dev Log (§29)** — `activity_log` is populated automatically but has no timeline UI yet.
   (Daily Journal, §28, is now built — see `/notes/journal`.)
 - **Automatic notifications** — the `notifications` table and the bell-icon UI both exist and

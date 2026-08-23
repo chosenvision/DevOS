@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/services/auth";
+import { tailorResume } from "@/lib/ai/resume-tailor";
+import { AiNotConfiguredError } from "@/lib/ai/client";
 import type { ResumeContent } from "@/types/database";
 
 export type ActionState = { error?: string; success?: string; id?: string };
@@ -121,4 +123,55 @@ export async function generateResumeFromData(resumeId: string) {
 
   revalidatePath(`/career/resume/${resumeId}`);
   return { error: error?.message };
+}
+
+/**
+ * Tailors a resume for a specific job using AI (reorders/rewords existing
+ * content only — see lib/ai/resume-tailor.ts for the hard "never invent"
+ * rules and the validation that actually enforces them). Saves the result
+ * as a brand-new resume row; the source resume is never modified.
+ */
+export async function tailorResumeForJob(resumeId: string, jobListingId: string): Promise<ActionState> {
+  const { supabase, user } = await requireUser();
+
+  const [{ data: source }, { data: job }] = await Promise.all([
+    supabase.from("resumes").select("*").eq("id", resumeId).eq("user_id", user.id).maybeSingle(),
+    supabase.from("job_listings").select("*").eq("id", jobListingId).eq("user_id", user.id).maybeSingle(),
+  ]);
+
+  if (!source) return { error: "Resume not found." };
+  if (!job) return { error: "Job not found." };
+
+  try {
+    const result = await tailorResume({
+      source: source.content as ResumeContent,
+      jobTitle: job.title,
+      companyName: job.company_name,
+      jobDescription: job.description,
+      jobSkills: job.skills ?? [],
+    });
+
+    const { data: created, error } = await supabase
+      .from("resumes")
+      .insert({
+        user_id: user.id,
+        name: `${source.name} — ${job.company_name}`,
+        target_job: job.title,
+        is_ats_mode: source.is_ats_mode,
+        content: result.content,
+        parent_resume_id: source.id,
+        tailored_for_job_id: job.id,
+        change_summary: result.changeSummary,
+      })
+      .select("id")
+      .single();
+
+    if (error || !created) return { error: error?.message ?? "Could not save the tailored resume." };
+
+    revalidatePath("/career/resume");
+    return { success: "Resume tailored and saved as a new version.", id: created.id as string };
+  } catch (err) {
+    if (err instanceof AiNotConfiguredError) return { error: err.message };
+    return { error: err instanceof Error ? err.message : "Could not tailor resume." };
+  }
 }

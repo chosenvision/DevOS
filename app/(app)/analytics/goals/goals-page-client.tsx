@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { GoalMilestonesDialog } from "@/components/habits/goal-milestones-dialog";
 import { createGoal, updateGoalProgress, deleteGoal } from "@/services/actions/habits";
+import { runAction } from "@/lib/action-feedback";
 import { GOAL_STATUS_LABEL } from "@/lib/constants";
 import { formatShortDate } from "@/lib/utils";
 import type { Goal, GoalPeriod } from "@/types/database";
@@ -38,7 +39,7 @@ function GoalCard({ goal }: { goal: Goal }) {
           <p className="truncate text-sm font-medium">{goal.title}</p>
           {goal.category && <p className="text-xs text-muted-foreground">{goal.category}</p>}
         </div>
-        <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteGoal(goal.id)} aria-label="Delete goal">
+        <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteGoal(goal.id))} aria-label="Delete goal">
           <Trash2 className="size-3.5" />
         </Button>
       </div>
@@ -58,10 +59,10 @@ function GoalCard({ goal }: { goal: Goal }) {
             </Button>
           ) : (
             <>
-              <Button size="icon" variant="outline" className="size-6" onClick={() => updateGoalProgress(goal.id, Math.max(0, goal.progress - 10))} aria-label="Decrease progress">
+              <Button size="icon" variant="outline" className="size-6" onClick={() => runAction(() => updateGoalProgress(goal.id, Math.max(0, goal.progress - 10)))} aria-label="Decrease progress">
                 <Minus className="size-3" />
               </Button>
-              <Button size="icon" variant="outline" className="size-6" onClick={() => updateGoalProgress(goal.id, Math.min(100, goal.progress + 10))} aria-label="Increase progress">
+              <Button size="icon" variant="outline" className="size-6" onClick={() => runAction(() => updateGoalProgress(goal.id, Math.min(100, goal.progress + 10)))} aria-label="Increase progress">
                 <Plus className="size-3" />
               </Button>
               <Button size="icon" variant="ghost" className="size-6" onClick={() => setMilestonesOpen(true)} aria-label="Manage milestones">

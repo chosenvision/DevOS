@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { updateApplicationStatus, deleteApplication } from "@/services/actions/career";
+import { runAction } from "@/lib/action-feedback";
 import { APPLICATION_STATUS_LABEL, APPLICATION_STATUS_ORDER } from "@/lib/constants";
 import { formatShortDate } from "@/lib/utils";
 import type { JobApplication } from "@/types/database";
@@ -61,7 +62,7 @@ export function ApplicationsTable({ applications }: { applications: JobApplicati
                 size="icon"
                 variant="ghost"
                 className="size-7"
-                onClick={() => deleteApplication(app.id)}
+                onClick={() => runAction(() => deleteApplication(app.id))}
                 aria-label="Delete application"
               >
                 <Trash2 className="size-3.5" />

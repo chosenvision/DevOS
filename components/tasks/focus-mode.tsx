@@ -67,7 +67,9 @@ export function FocusMode({ task, subtasks: initialSubtasks }: { task: Task; sub
         fd.set("status", task.status);
         fd.set("priority", task.priority);
         fd.set("projectId", task.project_id ?? "");
-        updateTask(task.id, fd);
+        updateTask(task.id, fd).then((res) => {
+          if (res.error) toast.error(res.error);
+        });
       }
     }, 1200);
     return () => clearTimeout(id);
@@ -146,7 +148,12 @@ export function FocusMode({ task, subtasks: initialSubtasks }: { task: Task; sub
                   checked={s.is_completed}
                   onCheckedChange={(checked) => {
                     setSubtasks((prev) => prev.map((x) => (x.id === s.id ? { ...x, is_completed: !!checked } : x)));
-                    toggleSubtask(s.id, !!checked);
+                    toggleSubtask(s.id, !!checked).then((res) => {
+                      if (res.error) {
+                        setSubtasks((prev) => prev.map((x) => (x.id === s.id ? { ...x, is_completed: !checked } : x)));
+                        toast.error(res.error);
+                      }
+                    });
                   }}
                 />
                 <span className={s.is_completed ? "text-sm text-muted-foreground line-through" : "text-sm"}>

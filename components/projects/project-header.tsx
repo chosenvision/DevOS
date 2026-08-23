@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PROJECT_STATUS_BADGE, PROJECT_STATUS_LABEL, PRIORITY_BADGE, PRIORITY_LABEL } from "@/lib/constants";
 import { archiveProject, deleteProject } from "@/services/actions/projects";
+import { runAction } from "@/lib/action-feedback";
 import type { Project } from "@/types/database";
 
 export function ProjectHeader({ project }: { project: Project }) {
@@ -89,7 +90,7 @@ export function ProjectHeader({ project }: { project: Project }) {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => deleteProject(project.id)}
+                  onClick={() => runAction(() => deleteProject(project.id))}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   Delete project

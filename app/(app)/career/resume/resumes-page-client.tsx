@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { createResume, duplicateResume, deleteResume } from "@/services/actions/resumes";
+import { runAction } from "@/lib/action-feedback";
 import { formatShortDate } from "@/lib/utils";
 import type { Resume } from "@/types/database";
 
@@ -65,7 +66,7 @@ export function ResumesPageClient({ resumes }: { resumes: Resume[] }) {
                 >
                   <Copy className="size-3.5" />
                 </Button>
-                <Button size="icon" variant="ghost" className="size-7" onClick={() => deleteResume(r.id)} aria-label="Delete resume">
+                <Button size="icon" variant="ghost" className="size-7" onClick={() => runAction(() => deleteResume(r.id))} aria-label="Delete resume">
                   <Trash2 className="size-3.5" />
                 </Button>
               </div>

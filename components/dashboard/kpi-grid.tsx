@@ -97,7 +97,10 @@ export function KpiGrid({ summary }: { summary: DashboardSummary }) {
           </div>
           {summary.githubConnected ? (
             <div className="flex items-baseline gap-2 px-5">
-              <span className="text-2xl font-semibold tabular-nums">—</span>
+              <span className="text-2xl font-semibold tabular-nums">
+                <CountUp value={summary.githubCommitsThisWeek ?? 0} />
+              </span>
+              <span className="text-xs text-muted-foreground">this week</span>
             </div>
           ) : (
             <div className="px-5">

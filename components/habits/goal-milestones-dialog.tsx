@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createGoalMilestone, toggleGoalMilestone, deleteGoalMilestone } from "@/services/actions/habits";
+import { runAction } from "@/lib/action-feedback";
 import { cn } from "@/lib/utils";
 import type { Goal } from "@/types/database";
 
@@ -26,7 +27,7 @@ export function GoalMilestonesDialog({
   function handleAdd() {
     const title = newMilestone.trim();
     if (!title) return;
-    createGoalMilestone(goal.id, title);
+    runAction(() => createGoalMilestone(goal.id, title));
     setNewMilestone("");
   }
 
@@ -44,7 +45,7 @@ export function GoalMilestonesDialog({
                 <li key={m.id} className="group flex items-center gap-2">
                   <Checkbox
                     checked={m.is_completed}
-                    onCheckedChange={(checked) => toggleGoalMilestone(m.id, goal.id, checked === true)}
+                    onCheckedChange={(checked) => runAction(() => toggleGoalMilestone(m.id, goal.id, checked === true))}
                   />
                   <span className={cn("flex-1 text-sm", m.is_completed && "text-muted-foreground line-through")}>
                     {m.title}
@@ -54,7 +55,7 @@ export function GoalMilestonesDialog({
                     size="icon"
                     variant="ghost"
                     className="size-6 opacity-0 group-hover:opacity-100"
-                    onClick={() => deleteGoalMilestone(m.id, goal.id)}
+                    onClick={() => runAction(() => deleteGoalMilestone(m.id, goal.id))}
                     aria-label="Delete milestone"
                   >
                     <X className="size-3.5" />

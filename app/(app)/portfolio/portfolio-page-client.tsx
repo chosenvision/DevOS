@@ -17,6 +17,7 @@ import {
   reorderPortfolioEntry,
   removeFromPortfolio,
 } from "@/services/actions/portfolio";
+import { runAction } from "@/lib/action-feedback";
 import type { PortfolioProject, Project } from "@/types/database";
 
 export function PortfolioPageClient({
@@ -47,7 +48,7 @@ export function PortfolioPageClient({
 
       {addableProjects.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <Select onValueChange={(id) => addProjectToPortfolio(id)}>
+          <Select onValueChange={(id) => runAction(() => addProjectToPortfolio(id))}>
             <SelectTrigger className="w-64"><SelectValue placeholder="Add a project to your portfolio" /></SelectTrigger>
             <SelectContent>
               {addableProjects.map((p) => (
@@ -71,17 +72,17 @@ export function PortfolioPageClient({
                   {entry.is_featured && <Badge variant="secondary">Featured</Badge>}
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button size="icon" variant="ghost" className="size-7" disabled={i === 0} onClick={() => reorderPortfolioEntry(entry.id, "up")} aria-label="Move up">
+                  <Button size="icon" variant="ghost" className="size-7" disabled={i === 0} onClick={() => runAction(() => reorderPortfolioEntry(entry.id, "up"))} aria-label="Move up">
                     <ArrowUp className="size-3.5" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="size-7" disabled={i === entries.length - 1} onClick={() => reorderPortfolioEntry(entry.id, "down")} aria-label="Move down">
+                  <Button size="icon" variant="ghost" className="size-7" disabled={i === entries.length - 1} onClick={() => runAction(() => reorderPortfolioEntry(entry.id, "down"))} aria-label="Move down">
                     <ArrowDown className="size-3.5" />
                   </Button>
                   <Button
                     size="icon"
                     variant="ghost"
                     className="size-7"
-                    onClick={() => updatePortfolioEntry(entry.id, { is_featured: !entry.is_featured })}
+                    onClick={() => runAction(() => updatePortfolioEntry(entry.id, { is_featured: !entry.is_featured }))}
                     aria-label="Toggle featured"
                   >
                     <Star className={entry.is_featured ? "size-3.5 fill-current text-warning" : "size-3.5"} />
@@ -98,7 +99,7 @@ export function PortfolioPageClient({
                   >
                     {entry.is_published ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </Button>
-                  <Button size="icon" variant="ghost" className="size-7" onClick={() => removeFromPortfolio(entry.id)} aria-label="Remove">
+                  <Button size="icon" variant="ghost" className="size-7" onClick={() => runAction(() => removeFromPortfolio(entry.id))} aria-label="Remove">
                     <Trash2 className="size-3.5" />
                   </Button>
                 </div>

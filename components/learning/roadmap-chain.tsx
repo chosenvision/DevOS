@@ -23,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { addRoadmapStep, updateRoadmapStepStatus, deleteRoadmap } from "@/services/actions/learning";
+import { runAction } from "@/lib/action-feedback";
 import { cn } from "@/lib/utils";
 import type { RoadmapWithSteps } from "@/services/queries/learning";
 
@@ -49,7 +50,7 @@ export function RoadmapChain({ roadmap }: { roadmap: RoadmapWithSteps }) {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => deleteRoadmap(roadmap.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogAction onClick={() => runAction(() => deleteRoadmap(roadmap.id))} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>

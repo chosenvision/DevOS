@@ -17,6 +17,7 @@ export interface DashboardSummary {
   applications: KpiValue;
   upcomingInterviews: KpiValue;
   githubConnected: boolean;
+  githubCommitsThisWeek: number | null;
 }
 
 /** One pass over the last 14 days of time entries + counts needed for the dashboard KPI row. */
@@ -69,7 +70,7 @@ export async function getDashboardSummary(
       .select("id, interview_date, created_at")
       .eq("user_id", userId)
       .not("interview_date", "is", null),
-    supabase.from("github_connections").select("user_id").eq("user_id", userId).maybeSingle(),
+    supabase.from("github_connections").select("user_id, recent_commits").eq("user_id", userId).maybeSingle(),
   ]);
 
   const projects = projectsRes.data ?? [];
@@ -126,6 +127,12 @@ export async function getDashboardSummary(
     (a) => a.interview_date && new Date(a.interview_date) >= new Date() && new Date(a.interview_date) <= in14Days
   ).length;
 
+  const recentCommits = (githubRes.data?.recent_commits ?? []) as { date: string; count: number }[];
+  const weekAgoDate = daysAgo(7).toISOString().slice(0, 10);
+  const githubCommitsThisWeek = githubRes.data
+    ? recentCommits.filter((d) => d.date >= weekAgoDate).reduce((sum, d) => sum + d.count, 0)
+    : null;
+
   return {
     activeProjects: { value: activeProjects, previous: activeProjectsPrev },
     tasksDueToday: { value: tasksDueToday, previous: tasksDueSameDayLastWeek },
@@ -135,6 +142,7 @@ export async function getDashboardSummary(
     applications: { value: activeApplications, previous: activeApplicationsPrev },
     upcomingInterviews: { value: upcomingInterviews, previous: upcomingInterviews },
     githubConnected: !!githubRes.data,
+    githubCommitsThisWeek,
   };
 }
 

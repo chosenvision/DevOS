@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createCourseLesson, toggleCourseLesson, deleteCourseLesson } from "@/services/actions/learning";
+import { runAction } from "@/lib/action-feedback";
 import { cn } from "@/lib/utils";
 import type { Course } from "@/types/database";
 
@@ -26,7 +27,7 @@ export function CourseLessonsDialog({
   function handleAdd() {
     const title = newLesson.trim();
     if (!title) return;
-    createCourseLesson(course.id, title);
+    runAction(() => createCourseLesson(course.id, title));
     setNewLesson("");
   }
 
@@ -44,7 +45,7 @@ export function CourseLessonsDialog({
                 <li key={l.id} className="group flex items-center gap-2">
                   <Checkbox
                     checked={l.is_completed}
-                    onCheckedChange={(checked) => toggleCourseLesson(l.id, course.id, checked === true)}
+                    onCheckedChange={(checked) => runAction(() => toggleCourseLesson(l.id, course.id, checked === true))}
                   />
                   <span className={cn("flex-1 text-sm", l.is_completed && "text-muted-foreground line-through")}>
                     {l.title}
@@ -54,7 +55,7 @@ export function CourseLessonsDialog({
                     size="icon"
                     variant="ghost"
                     className="size-6 opacity-0 group-hover:opacity-100"
-                    onClick={() => deleteCourseLesson(l.id, course.id)}
+                    onClick={() => runAction(() => deleteCourseLesson(l.id, course.id))}
                     aria-label="Delete lesson"
                   >
                     <X className="size-3.5" />

@@ -87,8 +87,16 @@ export function FilesTab({ projectId, userId }: { projectId: string; userId: str
 
   async function handleDelete(file: ProjectFile) {
     const supabase = createClient();
-    await supabase.storage.from("project-files").remove([file.file_path]);
-    await supabase.from("project_files").delete().eq("id", file.id);
+    const { error: storageError } = await supabase.storage.from("project-files").remove([file.file_path]);
+    if (storageError) {
+      toast.error("Could not delete the file.");
+      return;
+    }
+    const { error: dbError } = await supabase.from("project_files").delete().eq("id", file.id);
+    if (dbError) {
+      toast.error(dbError.message);
+      return;
+    }
     queryClient.invalidateQueries({ queryKey: ["project-files", projectId] });
   }
 

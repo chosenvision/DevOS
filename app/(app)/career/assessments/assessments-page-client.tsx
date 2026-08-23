@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState } from "@/components/shared/empty-state";
 import { AssessmentFormDialog } from "@/components/career/assessment-form-dialog";
 import { deleteAssessment, updateAssessmentStatus } from "@/services/actions/career";
+import { runAction } from "@/lib/action-feedback";
 import { formatShortDate } from "@/lib/utils";
 import { ASSESSMENT_STATUS_LABEL, ASSESSMENT_TYPE_LABEL } from "@/lib/constants";
 import type { Assessment } from "@/types/database";
@@ -50,7 +51,7 @@ export function AssessmentsPageClient({ assessments }: { assessments: Assessment
                 <p className="truncate text-sm font-medium">{a.company_name}</p>
                 {a.role && <p className="truncate text-xs text-muted-foreground">{a.role}</p>}
               </div>
-              <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteAssessment(a.id)} aria-label="Delete assessment">
+              <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteAssessment(a.id))} aria-label="Delete assessment">
                 <Trash2 className="size-3.5" />
               </Button>
             </div>
@@ -63,7 +64,7 @@ export function AssessmentsPageClient({ assessments }: { assessments: Assessment
               {a.score && ` · Score: ${a.score}`}
             </div>
             <div className="px-5">
-              <Select value={a.status} onValueChange={(v) => updateAssessmentStatus(a.id, v)}>
+              <Select value={a.status} onValueChange={(v) => runAction(() => updateAssessmentStatus(a.id, v))}>
                 <SelectTrigger className="h-8 w-full text-xs">
                   <SelectValue>
                     <Badge variant={STATUS_VARIANT[a.status]}>{ASSESSMENT_STATUS_LABEL[a.status]}</Badge>

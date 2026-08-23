@@ -20,6 +20,7 @@ import {
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { createContact, deleteContact, markContacted, setFollowUp } from "@/services/actions/companies";
+import { runAction } from "@/lib/action-feedback";
 import { formatShortDate } from "@/lib/utils";
 import type { Contact } from "@/types/database";
 
@@ -67,7 +68,7 @@ export function ContactsPageClient({ contacts }: { contacts: Contact[] }) {
                       {[c.role, c.company?.name].filter(Boolean).join(" at ") || "—"}
                     </p>
                   </div>
-                  <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteContact(c.id)} aria-label="Remove contact">
+                  <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteContact(c.id))} aria-label="Remove contact">
                     <Trash2 className="size-3.5" />
                   </Button>
                 </div>
@@ -82,7 +83,7 @@ export function ContactsPageClient({ contacts }: { contacts: Contact[] }) {
                   )}
                 </div>
                 <div className="flex items-center gap-2 px-4">
-                  <Button size="sm" variant="outline" onClick={() => markContacted(c.id)}>
+                  <Button size="sm" variant="outline" onClick={() => runAction(() => markContacted(c.id))}>
                     Mark contacted
                   </Button>
                   <DropdownMenu>
@@ -90,8 +91,8 @@ export function ContactsPageClient({ contacts }: { contacts: Contact[] }) {
                       <Button size="sm" variant="outline">Set reminder</Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onSelect={() => setFollowUp(c.id, 7)}>Follow up in 7 days</DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => setFollowUp(c.id, 30)}>Reconnect in 30 days</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => runAction(() => setFollowUp(c.id, 7))}>Follow up in 7 days</DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => runAction(() => setFollowUp(c.id, 30))}>Reconnect in 30 days</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

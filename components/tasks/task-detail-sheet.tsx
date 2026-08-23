@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PRIORITY_LABEL, TASK_STATUS_LABEL, TASK_STATUS_ORDER } from "@/lib/constants";
 import { updateTask, deleteTask, addSubtask, toggleSubtask } from "@/services/actions/tasks";
+import { runAction } from "@/lib/action-feedback";
 import type { Task, TaskSubtask } from "@/types/database";
 
 interface TaskDetailSheetProps {
@@ -98,7 +99,7 @@ export function TaskDetailSheet({ task, subtasks, onOpenChange, onDeleted }: Tas
                   <li key={s.id} className="flex items-center gap-2">
                     <Checkbox
                       checked={s.is_completed}
-                      onCheckedChange={(checked) => toggleSubtask(s.id, !!checked)}
+                      onCheckedChange={(checked) => runAction(() => toggleSubtask(s.id, !!checked))}
                     />
                     <span className={s.is_completed ? "text-sm text-muted-foreground line-through" : "text-sm"}>
                       {s.title}
@@ -115,7 +116,7 @@ export function TaskDetailSheet({ task, subtasks, onOpenChange, onDeleted }: Tas
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && newSubtask.trim()) {
                     e.preventDefault();
-                    addSubtask(task.id, newSubtask.trim());
+                    runAction(() => addSubtask(task.id, newSubtask.trim()));
                     setNewSubtask("");
                   }
                 }}
@@ -126,7 +127,7 @@ export function TaskDetailSheet({ task, subtasks, onOpenChange, onDeleted }: Tas
                 variant="outline"
                 onClick={() => {
                   if (newSubtask.trim()) {
-                    addSubtask(task.id, newSubtask.trim());
+                    runAction(() => addSubtask(task.id, newSubtask.trim()));
                     setNewSubtask("");
                   }
                 }}
@@ -141,10 +142,12 @@ export function TaskDetailSheet({ task, subtasks, onOpenChange, onDeleted }: Tas
               type="button"
               variant="ghost"
               className="text-destructive hover:text-destructive"
-              onClick={() => {
-                deleteTask(task.id);
-                onDeleted?.();
-                onOpenChange(false);
+              onClick={async () => {
+                const res = await runAction(() => deleteTask(task.id));
+                if (!res.error) {
+                  onDeleted?.();
+                  onOpenChange(false);
+                }
               }}
             >
               <Trash2 className="size-4" /> Delete

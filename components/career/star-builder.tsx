@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { EmptyState } from "@/components/shared/empty-state";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { createStarResponse, deleteStarResponse } from "@/services/actions/interview-prep";
+import { runAction } from "@/lib/action-feedback";
 import type { StarResponse } from "@/types/database";
 
 export function StarBuilder({ responses }: { responses: StarResponse[] }) {
@@ -51,7 +52,7 @@ export function StarBuilder({ responses }: { responses: StarResponse[] }) {
             <Card key={r.id} className="gap-2 py-3">
               <div className="flex items-start justify-between gap-2 px-4">
                 <p className="text-sm font-medium">{r.title}</p>
-                <Button size="icon" variant="ghost" className="size-6" onClick={() => deleteStarResponse(r.id)} aria-label="Delete STAR response">
+                <Button size="icon" variant="ghost" className="size-6" onClick={() => runAction(() => deleteStarResponse(r.id))} aria-label="Delete STAR response">
                   <Trash2 className="size-3.5" />
                 </Button>
               </div>
