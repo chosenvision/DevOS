@@ -10,7 +10,7 @@ import type { Project } from "@/types/database";
 export function ProjectCard({ project }: { project: Project }) {
   return (
     <Link href={`/projects/${project.slug}`}>
-      <Card className="h-full gap-3 py-4 transition-colors hover:border-primary/40 hover:bg-accent/30">
+      <Card className="hover-lift h-full gap-3 py-4 hover:border-primary/40 hover:bg-accent/30 hover:shadow-soft-lg">
         <div className="flex items-start justify-between gap-2 px-5">
           <div className="min-w-0">
             <p className="truncate font-medium">{project.name}</p>

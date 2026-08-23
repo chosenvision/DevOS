@@ -13,6 +13,7 @@ import { TodaySection } from "@/components/dashboard/today-section";
 import { WeeklyActivityChart } from "@/components/dashboard/weekly-activity-chart";
 import { CurrentProjectCard } from "@/components/dashboard/current-project-card";
 import { ProductivityScore } from "@/components/dashboard/productivity-score";
+import { Reveal } from "@/components/shared/motion";
 
 export const metadata: Metadata = { title: "Dashboard — DevOS" };
 
@@ -37,13 +38,19 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-4 sm:p-6">
       <WelcomeHeader name={name} />
-      <KpiGrid summary={summary} />
-      <TodaySection data={today} />
-      <WeeklyActivityChart />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <Reveal delay={0.08}>
+        <KpiGrid summary={summary} />
+      </Reveal>
+      <Reveal delay={0.14}>
+        <TodaySection data={today} />
+      </Reveal>
+      <Reveal delay={0.18}>
+        <WeeklyActivityChart />
+      </Reveal>
+      <Reveal delay={0.22} className="grid gap-4 lg:grid-cols-2">
         <CurrentProjectCard data={currentProject} />
         <ProductivityScore score={productivity.score} />
-      </div>
+      </Reveal>
     </div>
   );
 }

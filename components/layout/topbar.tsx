@@ -26,7 +26,7 @@ export function Topbar({ name, email, avatarUrl }: TopbarProps) {
       <button
         type="button"
         onClick={() => setCommandPaletteOpen(true)}
-        className="flex h-8 flex-1 max-w-sm items-center gap-2 rounded-md border border-input bg-secondary/40 px-3 text-sm text-muted-foreground shadow-xs transition-colors hover:border-ring/40 hover:bg-secondary lg:max-w-xs"
+        className="flex h-8 flex-1 max-w-sm items-center gap-2 rounded-md border border-input bg-secondary/40 px-3 text-sm text-muted-foreground shadow-xs transition-all duration-150 hover:border-ring/40 hover:bg-secondary active:scale-[0.99] lg:max-w-xs"
       >
         <Search className="size-3.5" />
         Search or jump to...

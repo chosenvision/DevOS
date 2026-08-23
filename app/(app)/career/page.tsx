@@ -9,6 +9,7 @@ import { PriorityList } from "@/components/career/priority-list";
 import { ApplicationFunnelChart } from "@/components/career/application-funnel";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/shared/motion";
 
 export const metadata: Metadata = { title: "Career Overview — DevOS" };
 
@@ -44,14 +45,18 @@ export default async function CareerOverviewPage() {
         </Card>
       )}
 
-      <CareerKpiRow data={data} />
+      <Reveal>
+        <CareerKpiRow data={data} />
+      </Reveal>
 
-      <div>
+      <Reveal delay={0.08}>
         <h2 className="mb-2 text-sm font-medium text-muted-foreground">Today&apos;s Career Priorities</h2>
         <PriorityList priorities={data.priorities} />
-      </div>
+      </Reveal>
 
-      <ApplicationFunnelChart stages={funnel} />
+      <Reveal delay={0.14}>
+        <ApplicationFunnelChart stages={funnel} />
+      </Reveal>
     </div>
   );
 }

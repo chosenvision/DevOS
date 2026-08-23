@@ -1,13 +1,21 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 
+import { useReducedMotion } from "@/lib/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/lib/nav-config";
 
 export function SidebarNav({ items, onNavigate }: { items: NavItem[]; onNavigate?: () => void }) {
   const pathname = usePathname();
+  const reducedMotion = useReducedMotion();
+  // Scopes the shared-layout indicator to this instance — SidebarNav renders multiple times at
+  // once (desktop main/footer nav, mobile sheet main/footer nav), and a layoutId shared across
+  // separately-mounted instances makes framer-motion treat them as one animated group.
+  const instanceId = React.useId();
 
   return (
     <nav className="flex flex-col gap-0.5">
@@ -26,20 +34,21 @@ export function SidebarNav({ items, onNavigate }: { items: NavItem[]; onNavigate
                 : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
             )}
           >
-            <span
-              className={cn(
-                "absolute left-0 h-4 w-0.5 rounded-full bg-sidebar-primary transition-opacity",
-                active ? "opacity-100" : "opacity-0"
-              )}
-              aria-hidden
-            />
+            {active && (
+              <motion.span
+                layoutId={reducedMotion ? undefined : `sidebar-active-indicator-${instanceId}`}
+                className="absolute left-0 h-4 w-0.5 rounded-full bg-sidebar-primary"
+                transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                aria-hidden
+              />
+            )}
             <item.icon
               className={cn(
-                "size-4 shrink-0 transition-[color,transform] duration-150 group-hover:scale-110",
+                "size-4 shrink-0 transition-[color,transform] duration-150 group-hover:scale-110 group-active:scale-95",
                 active ? "text-sidebar-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
               )}
             />
-            {item.title}
+            <span className="transition-transform duration-150 group-hover:translate-x-0.5">{item.title}</span>
           </Link>
         );
       })}

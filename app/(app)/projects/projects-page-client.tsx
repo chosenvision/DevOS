@@ -13,6 +13,7 @@ import { ProjectsKanban } from "@/components/projects/projects-kanban";
 import { ProjectsTimeline } from "@/components/projects/projects-timeline";
 import { ProjectFormDialog } from "@/components/projects/project-form-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
+import { Stagger, StaggerItem } from "@/components/shared/motion";
 import type { Project } from "@/types/database";
 
 type ViewMode = "grid" | "list" | "kanban" | "timeline";
@@ -87,11 +88,13 @@ export function ProjectsPageClient({ projects }: { projects: Project[] }) {
       {filtered.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">No projects match &ldquo;{search}&rdquo;.</p>
       ) : view === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((p) => (
-            <ProjectCard key={p.id} project={p} />
+            <StaggerItem key={p.id}>
+              <ProjectCard project={p} />
+            </StaggerItem>
           ))}
-        </div>
+        </Stagger>
       ) : view === "list" ? (
         <ProjectsList projects={filtered} />
       ) : view === "kanban" ? (

@@ -46,7 +46,10 @@ export function NotificationsMenu() {
         <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
           <Bell className="size-4" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 flex size-1.5 rounded-full bg-primary" />
+            <span className="absolute top-1 right-1 flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/75 motion-reduce:animate-none" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
+            </span>
           )}
         </Button>
       </DropdownMenuTrigger>

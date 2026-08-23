@@ -252,4 +252,18 @@
       animation: none;
     }
   }
+
+  /* Lightweight hover-lift for cards that don't need TiltCard's full 3D tracking —
+     pure CSS so it works from server components with zero client-JS cost. */
+  .hover-lift {
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease, border-color 200ms ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hover-lift:hover {
+      transform: none;
+    }
+  }
 }
