@@ -125,6 +125,7 @@ export function TaskDetailSheet({ task, subtasks, onOpenChange, onDeleted }: Tas
                 type="button"
                 size="icon"
                 variant="outline"
+                aria-label="Add subtask"
                 onClick={() => {
                   if (newSubtask.trim()) {
                     runAction(() => addSubtask(task.id, newSubtask.trim()));

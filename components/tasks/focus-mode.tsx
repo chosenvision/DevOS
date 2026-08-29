@@ -184,6 +184,7 @@ export function FocusMode({ task, subtasks: initialSubtasks }: { task: Task; sub
             type="button"
             size="icon"
             variant="outline"
+            aria-label="Add subtask"
             onClick={async () => {
               if (!newSubtask.trim()) return;
               await addSubtask(task.id, newSubtask.trim());
