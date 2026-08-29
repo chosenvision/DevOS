@@ -10,6 +10,10 @@ import type {
   CrmItemUnit,
   InvoiceStatus,
   ExpenseCategory,
+  PoStatus,
+  PayrollStatus,
+  TimeOffType,
+  TimeOffStatus,
   DifficultyLevel,
   EmploymentType,
   GoalStatus,
@@ -218,6 +222,43 @@ export const EXPENSE_CATEGORY_ORDER: ExpenseCategory[] = [
   "office",
   "other",
 ];
+
+export const PO_STATUS_LABEL: Record<PoStatus, string> = {
+  draft: "Draft",
+  sent: "Sent",
+  received: "Received",
+  cancelled: "Cancelled",
+};
+
+export const PO_STATUS_BADGE: Record<PoStatus, "muted" | "outline" | "success" | "destructive"> = {
+  draft: "muted",
+  sent: "outline",
+  received: "success",
+  cancelled: "destructive",
+};
+
+export const PAYROLL_STATUS_LABEL: Record<PayrollStatus, string> = {
+  draft: "Draft",
+  recorded: "Recorded",
+};
+
+export const TIME_OFF_TYPE_LABEL: Record<TimeOffType, string> = {
+  vacation: "Vacation",
+  sick: "Sick",
+  unpaid: "Unpaid",
+};
+
+export const TIME_OFF_STATUS_LABEL: Record<TimeOffStatus, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  denied: "Denied",
+};
+
+export const TIME_OFF_STATUS_BADGE: Record<TimeOffStatus, "outline" | "success" | "destructive"> = {
+  pending: "outline",
+  approved: "success",
+  denied: "destructive",
+};
 
 export const BUG_SEVERITY_LABEL: Record<BugSeverity, string> = {
   low: "Low",

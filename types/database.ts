@@ -969,3 +969,73 @@ export interface Expense {
   created_by: string | null;
   created_at: string;
 }
+
+export type PoStatus = "draft" | "sent" | "received" | "cancelled";
+export type PayrollStatus = "draft" | "recorded";
+export type TimeOffType = "vacation" | "sick" | "unpaid";
+export type TimeOffStatus = "pending" | "approved" | "denied";
+
+export interface Vendor {
+  id: string;
+  organization_id: string;
+  name: string;
+  contact_email: string | null;
+  phone: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  organization_id: string;
+  vendor_id: string | null;
+  po_number: string;
+  status: PoStatus;
+  order_date: string;
+  expected_date: string | null;
+  total: number;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PurchaseOrderLineItem {
+  id: string;
+  organization_id: string;
+  purchase_order_id: string;
+  item_id: string | null;
+  description: string;
+  quantity: number;
+  unit_cost: number;
+  amount: number;
+  sort_order: number;
+}
+
+export interface PayrollRecord {
+  id: string;
+  organization_id: string;
+  member_id: string;
+  pay_period_start: string;
+  pay_period_end: string;
+  gross_amount: number;
+  currency: string;
+  status: PayrollStatus;
+  notes: string | null;
+  recorded_by: string | null;
+  recorded_at: string | null;
+  created_at: string;
+}
+
+export interface TimeOffRequest {
+  id: string;
+  organization_id: string;
+  member_id: string;
+  start_date: string;
+  end_date: string;
+  type: TimeOffType;
+  status: TimeOffStatus;
+  notes: string | null;
+  created_at: string;
+}
