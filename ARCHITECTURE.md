@@ -66,6 +66,16 @@ app UI at all), and `/portfolio/[username]` (public, no auth required).
 /career/coding-practice             Problem tracker + spaced-repetition review queue
 /career/companies, /career/contacts Research notes + follow-up reminders
 
+/business                          Org overview: pipeline value, deals by stage, recent activity
+/business/clients, /clients/[id]   Client list + detail (contacts, deals, activity log)
+/business/deals                    Deal pipeline — Kanban / Table
+/business/invoices, /invoices/new  Invoice list + line-item builder; /print/invoice/[id] for PDF
+/business/expenses                 Expense log, billable-to-client flag
+/business/items                    Billable item/service catalog (doubles as simplified inventory)
+/business/purchase-orders, /new    Vendor purchase orders — receiving one restocks items
+/business/reports                  Income vs. expense chart, expense by category
+/business/team                     Members/invites · Payroll (admin-only) · Time Off
+
 /notes                             All Notes (search, type filter, pin/favorite)
 /notes/[id]                        Markdown editor (write/preview)
 /notes/snippets                    Syntax-highlighted snippet library
@@ -112,6 +122,12 @@ DevOS
 │   ├── Interview Prep (question bank, STAR builder, Mock Interview mode)
 │   ├── Coding Practice (spaced-repetition review scheduling)
 │   ├── Companies & Contacts (research notes, follow-up reminders)
+├── Business (multi-tenant — organizations/teams, unlike everything else here)
+│   ├── CRM (clients, contacts, deal pipeline, activity log)
+│   ├── Invoicing (line items, PDF export, expenses, simplified inventory)
+│   ├── Procurement (vendors, purchase orders — receiving restocks items)
+│   ├── Team (invites/roles, payroll ledger, time off requests/approval)
+│   └── Reports (income vs. expense)
 ├── Notes / Second Brain (markdown, pin/favorite, search)
 │   ├── Code Snippets (syntax highlighting, copy)
 │   ├── Idea Vault (kanban, convert-to-project)
@@ -388,6 +404,48 @@ Supabase dashboard:
 Required env vars for each are documented in `.env.local.example`. No token is ever exposed to
 the client — every OAuth exchange and AI call runs server-side (Server Action or Route Handler).
 
+## 10. Business Module (Team/Agency CRM + simplified ERP)
+
+Everything above is single-user: every table is `user_id`-scoped, and there is no concept of a
+team. The Business module (`/business/*`, `supabase/migrations/20260819*.sql`) is the one
+deliberate exception — a multi-tenant layer for running a freelance/agency business, added
+additively without touching any existing table's schema or RLS policy.
+
+**Multi-tenancy, added once, reused everywhere below:**
+
+- `organizations` + `organization_members` (role: `owner`/`admin`/`member`; status:
+  `invited`/`active`). A default org is auto-provisioned the first time a user visits
+  `/business` (`services/queries/organizations.ts:getOrCreateDefaultOrg`), the same
+  self-healing pattern as `getOrCreateProfile` for a missing `profiles` row — nobody has to
+  explicitly "create an organization" first.
+- Two SQL helper functions gate every Business-table RLS policy: `is_org_member(org_id)` and
+  `has_org_role(org_id, min_role)`, both `security definer` so policies referencing
+  `organization_members` don't recurse into its own RLS. The pattern for a shared-team table is
+  `using (is_org_member(organization_id)) with check (is_org_member(organization_id))` — the
+  direct multi-tenant equivalent of the personal tables' `auth.uid() = user_id`.
+- `requireActiveOrg()` (`services/auth.ts`) is the entry point every Business page calls: it
+  resolves which org a multi-org user is currently working in (an `active_org_id` cookie set by
+  the topbar's org switcher, falling back to the org they own), auto-provisioning if needed.
+  `requireOrgMember(orgId)` is the equivalent for actions that already have an explicit org id.
+- Invites are a row with `invited_email` + `status='invited'` before the person has an account;
+  `activatePendingInvites()` matches them to a real user by email on next login.
+
+**Modules built on top, each `organization_id`-scoped:**
+
+| Module | Tables | Notes |
+| --- | --- | --- |
+| CRM | `crm_clients`, `crm_contacts`, `crm_deals`, `crm_activities` | Deal pipeline (lead→won/lost) reuses `components/shared/kanban-board.tsx`, the same generic component Career's Applications kanban wraps. Any active org member manages the whole shared pipeline — this is a *business* CRM, kept completely separate from the personal, job-hunting-scoped `companies`/`contacts` tables in the Career hub. |
+| Invoicing & inventory | `crm_items`, `invoices`, `invoice_line_items`, `expenses` | `crm_items.stock_quantity` is nullable — null means a service, a number means tracked stock. Sending an invoice for the first time decrements it; receiving a purchase order (below) increments it. `/print/invoice/[id]` reuses the exact print-to-PDF pattern `/print/resume/[id]` already established, so no PDF library was added. |
+| Procurement | `vendors`, `purchase_orders`, `purchase_order_line_items` | Same "any member manages it" model as CRM/invoicing. |
+| Payroll & time off | `payroll_records`, `time_off_requests` | **Stricter RLS than every other Business table.** Payroll is salary data and time-off approval is a real authority boundary: a regular member's `SELECT` on `payroll_records` returns only their own row (enforced in RLS, not just the UI), and only an admin/owner can `INSERT`/`UPDATE`/see everyone's. Time off follows the same split — a member can request and view their own, cancel it while still pending, but only an admin can approve or deny (a member has no `UPDATE` policy on the table at all, closing a self-approval path a single combined policy would have left open). Payroll is explicitly a manual ledger — the UI states plainly it doesn't process payment, taxes, or direct deposit. |
+| Reports | *(no new table — reads `invoices` + `expenses`)* | A simple income-vs-expense bar chart and expense-by-category breakdown, reusing the dashboard's recharts + `--color-chart-1..5` token conventions. Explicitly not double-entry bookkeeping or tax software. |
+
+**Explicit scope boundaries**, stated in-app rather than left implicit:
+- No real payment processing (Stripe or otherwise) — "mark paid" is a manual status toggle.
+- No payroll processing — no tax withholding, no direct deposit, just a dated ledger entry.
+- No formal accounting — the Reports page is income/expense visibility, not a general ledger,
+  chart of accounts, or anything a tax preparer would treat as a system of record.
+
 ## What's not built
 
 Being direct about scope, since "production-ready" claims are only useful if they're accurate:
@@ -407,11 +465,6 @@ Being direct about scope, since "production-ready" claims are only useful if the
 - **Automatic notifications** — the `notifications` table and the bell-icon UI both exist and
   work, but nothing currently *writes* rows into it (e.g. a "task due tomorrow" reminder). It
   needs a scheduled job (Supabase cron / Edge Function) that doesn't exist in this codebase.
-- **Real GitHub repo/commit sync** — Settings → Integrations links a GitHub *identity* via
-  Supabase OAuth (functional once the provider is enabled in the Supabase dashboard) and stores
-  it in `github_connections`. Pulling actual repos, stars, and commit activity from the GitHub
-  API into `github_repos` and the Dashboard's "GitHub Commits" card is not implemented.
-  connection is real; syncing is not.
 - **Data import is best-effort, not a full relational restore** — `/settings/data` restores
   standalone rows (projects, tasks, notes, and similar) under new IDs but intentionally drops
   cross-references (a task's `project_id`, a job application's `company_id`) rather than risk
