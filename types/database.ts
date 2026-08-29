@@ -815,3 +815,35 @@ export interface Assessment {
   created_at: string;
   updated_at: string;
 }
+
+// ---------- Business module (Team/Agency CRM + simplified ERP) ----------
+
+export type OrgRole = "owner" | "admin" | "member";
+export type OrgMemberStatus = "invited" | "active";
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  owner_id: string;
+  plan: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OrganizationMember {
+  id: string;
+  organization_id: string;
+  user_id: string | null;
+  invited_email: string | null;
+  role: OrgRole;
+  status: OrgMemberStatus;
+  invited_at: string | null;
+  joined_at: string | null;
+  created_at: string;
+}
+
+/** OrganizationMember joined with the inviting/invited user's display info, where known. */
+export interface OrganizationMemberWithProfile extends OrganizationMember {
+  profile: { full_name: string | null; avatar_url: string | null } | null;
+}

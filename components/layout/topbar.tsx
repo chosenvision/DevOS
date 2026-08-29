@@ -9,6 +9,7 @@ import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { ActiveTimerPill } from "@/components/layout/active-timer-pill";
+import { OrgSwitcher } from "@/components/layout/org-switcher";
 
 interface TopbarProps {
   name: string;
@@ -36,6 +37,7 @@ export function Topbar({ name, email, avatarUrl }: TopbarProps) {
       </button>
 
       <div className="ml-auto flex items-center gap-1.5">
+        <OrgSwitcher />
         <ActiveTimerPill />
         <Button size="sm" onClick={() => openQuickAdd()} className="hidden sm:inline-flex">
           <Plus className="size-4" />
