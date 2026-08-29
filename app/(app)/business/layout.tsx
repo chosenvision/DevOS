@@ -2,6 +2,8 @@ import { SubNav } from "@/components/shared/sub-nav";
 
 const NAV = [
   { label: "Overview", href: "/business" },
+  { label: "Clients", href: "/business/clients" },
+  { label: "Deals", href: "/business/deals" },
   { label: "Team", href: "/business/team" },
 ];
 

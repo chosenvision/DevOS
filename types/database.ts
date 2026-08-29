@@ -847,3 +847,60 @@ export interface OrganizationMember {
 export interface OrganizationMemberWithProfile extends OrganizationMember {
   profile: { full_name: string | null; avatar_url: string | null } | null;
 }
+
+export type CrmClientStatus = "active" | "inactive" | "archived";
+export type CrmDealStage = "lead" | "qualified" | "proposal" | "negotiation" | "won" | "lost";
+export type CrmActivityType = "call" | "email" | "meeting" | "note";
+
+export interface CrmClient {
+  id: string;
+  organization_id: string;
+  name: string;
+  industry: string | null;
+  website: string | null;
+  status: CrmClientStatus;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmContact {
+  id: string;
+  organization_id: string;
+  client_id: string | null;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmDeal {
+  id: string;
+  organization_id: string;
+  client_id: string | null;
+  title: string;
+  value: number;
+  currency: string;
+  stage: CrmDealStage;
+  owner_id: string | null;
+  expected_close_date: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CrmActivity {
+  id: string;
+  organization_id: string;
+  client_id: string;
+  deal_id: string | null;
+  type: CrmActivityType;
+  description: string;
+  occurred_at: string;
+  created_by: string | null;
+  created_at: string;
+}

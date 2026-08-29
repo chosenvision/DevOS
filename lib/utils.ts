@@ -42,6 +42,10 @@ export function formatRelativeTime(date: string | Date | null | undefined): stri
   return formatShortDate(d);
 }
 
+export function formatCurrency(amount: number, currency = "USD"): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency, maximumFractionDigits: 0 }).format(amount);
+}
+
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${Math.round(minutes)}m`;
   const hours = Math.floor(minutes / 60);

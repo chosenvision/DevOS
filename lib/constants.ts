@@ -4,6 +4,9 @@ import type {
   AssessmentType,
   BugSeverity,
   CourseStatus,
+  CrmClientStatus,
+  CrmDealStage,
+  CrmActivityType,
   DifficultyLevel,
   EmploymentType,
   GoalStatus,
@@ -133,6 +136,43 @@ export const APPLICATION_STATUS_ORDER: ApplicationStatus[] = [
   "rejected",
   "withdrawn",
 ];
+
+export const CRM_CLIENT_STATUS_LABEL: Record<CrmClientStatus, string> = {
+  active: "Active",
+  inactive: "Inactive",
+  archived: "Archived",
+};
+
+export const CRM_CLIENT_STATUS_BADGE: Record<CrmClientStatus, "default" | "muted" | "outline"> = {
+  active: "default",
+  inactive: "outline",
+  archived: "muted",
+};
+
+export const CRM_DEAL_STAGE_LABEL: Record<CrmDealStage, string> = {
+  lead: "Lead",
+  qualified: "Qualified",
+  proposal: "Proposal",
+  negotiation: "Negotiation",
+  won: "Won",
+  lost: "Lost",
+};
+
+export const CRM_DEAL_STAGE_ORDER: CrmDealStage[] = [
+  "lead",
+  "qualified",
+  "proposal",
+  "negotiation",
+  "won",
+  "lost",
+];
+
+export const CRM_ACTIVITY_TYPE_LABEL: Record<CrmActivityType, string> = {
+  call: "Call",
+  email: "Email",
+  meeting: "Meeting",
+  note: "Note",
+};
 
 export const BUG_SEVERITY_LABEL: Record<BugSeverity, string> = {
   low: "Low",

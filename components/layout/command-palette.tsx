@@ -8,6 +8,7 @@ import {
   FolderKanban,
   NotebookPen,
   Briefcase,
+  Building2,
   Timer,
   Lightbulb,
   CalendarDays,
@@ -94,6 +95,9 @@ export function CommandPalette() {
           </CommandItem>
           <CommandItem onSelect={() => run(() => router.push("/career"))}>
             <Briefcase /> Career Hub
+          </CommandItem>
+          <CommandItem onSelect={() => run(() => router.push("/business"))}>
+            <Building2 /> Business
           </CommandItem>
           <CommandItem onSelect={() => run(() => router.push("/notes"))}>
             <NotebookPen /> Notes
