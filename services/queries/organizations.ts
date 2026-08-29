@@ -56,9 +56,27 @@ export async function getOrCreateDefaultOrg(
   const name = `${displayName}'s Business`;
   const slug = await uniqueOrgSlug(supabase, name);
 
+  // The organizations INSERT policy checks owner_id = auth.uid(), evaluated
+  // by Postgres against the JWT actually forwarded on this request — not
+  // against whatever `userId` this function was called with. requireUser()
+  // deliberately uses the cheap, locally-decoded getSession() (see its own
+  // comment), which is fine for reads but has caused exactly this insert to
+  // be rejected with "auth.uid() didn't match" while reads quietly returned
+  // empty results instead of erroring. Re-verify with getUser() (a real
+  // round-trip to the Auth server) right before the one INSERT here that
+  // actually depends on auth.uid() matching a specific value.
+  const {
+    data: { user: verifiedUser },
+    error: verifyError,
+  } = await supabase.auth.getUser();
+
+  if (verifyError || !verifiedUser) {
+    throw new Error(`Could not verify your session to create an organization: ${verifyError?.message ?? "no user"}`);
+  }
+
   const { data: org, error: orgError } = await supabase
     .from("organizations")
-    .insert({ name, slug, owner_id: userId })
+    .insert({ name, slug, owner_id: verifiedUser.id })
     .select("*")
     .single();
 
@@ -71,7 +89,7 @@ export async function getOrCreateDefaultOrg(
 
   const { error: memberError } = await supabase.from("organization_members").insert({
     organization_id: org.id,
-    user_id: userId,
+    user_id: verifiedUser.id,
     role: "owner",
     status: "active",
     joined_at: new Date().toISOString(),
