@@ -4,6 +4,9 @@ const NAV = [
   { label: "Overview", href: "/business" },
   { label: "Clients", href: "/business/clients" },
   { label: "Deals", href: "/business/deals" },
+  { label: "Invoices", href: "/business/invoices" },
+  { label: "Expenses", href: "/business/expenses" },
+  { label: "Items", href: "/business/items" },
   { label: "Team", href: "/business/team" },
 ];
 

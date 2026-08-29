@@ -904,3 +904,68 @@ export interface CrmActivity {
   created_by: string | null;
   created_at: string;
 }
+
+export type CrmItemUnit = "hour" | "fixed" | "item";
+export type InvoiceStatus = "draft" | "sent" | "paid" | "overdue" | "void";
+export type ExpenseCategory = "software" | "hardware" | "travel" | "marketing" | "contractor" | "office" | "other";
+
+export interface CrmItem {
+  id: string;
+  organization_id: string;
+  name: string;
+  description: string | null;
+  unit_price: number;
+  unit: CrmItemUnit;
+  sku: string | null;
+  stock_quantity: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Invoice {
+  id: string;
+  organization_id: string;
+  client_id: string | null;
+  invoice_number: string;
+  status: InvoiceStatus;
+  issue_date: string;
+  due_date: string | null;
+  subtotal: number;
+  tax_rate: number;
+  tax_amount: number;
+  total: number;
+  currency: string;
+  notes: string | null;
+  paid_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceLineItem {
+  id: string;
+  organization_id: string;
+  invoice_id: string;
+  item_id: string | null;
+  description: string;
+  quantity: number;
+  unit_price: number;
+  amount: number;
+  sort_order: number;
+}
+
+export interface Expense {
+  id: string;
+  organization_id: string;
+  category: ExpenseCategory;
+  vendor: string | null;
+  amount: number;
+  currency: string;
+  expense_date: string;
+  is_billable: boolean;
+  client_id: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+}

@@ -7,6 +7,9 @@ import type {
   CrmClientStatus,
   CrmDealStage,
   CrmActivityType,
+  CrmItemUnit,
+  InvoiceStatus,
+  ExpenseCategory,
   DifficultyLevel,
   EmploymentType,
   GoalStatus,
@@ -173,6 +176,48 @@ export const CRM_ACTIVITY_TYPE_LABEL: Record<CrmActivityType, string> = {
   meeting: "Meeting",
   note: "Note",
 };
+
+export const CRM_ITEM_UNIT_LABEL: Record<CrmItemUnit, string> = {
+  hour: "Per hour",
+  fixed: "Fixed price",
+  item: "Per item",
+};
+
+export const INVOICE_STATUS_LABEL: Record<InvoiceStatus, string> = {
+  draft: "Draft",
+  sent: "Sent",
+  paid: "Paid",
+  overdue: "Overdue",
+  void: "Void",
+};
+
+export const INVOICE_STATUS_BADGE: Record<InvoiceStatus, "muted" | "outline" | "success" | "destructive"> = {
+  draft: "muted",
+  sent: "outline",
+  paid: "success",
+  overdue: "destructive",
+  void: "muted",
+};
+
+export const EXPENSE_CATEGORY_LABEL: Record<ExpenseCategory, string> = {
+  software: "Software",
+  hardware: "Hardware",
+  travel: "Travel",
+  marketing: "Marketing",
+  contractor: "Contractor",
+  office: "Office",
+  other: "Other",
+};
+
+export const EXPENSE_CATEGORY_ORDER: ExpenseCategory[] = [
+  "software",
+  "hardware",
+  "travel",
+  "marketing",
+  "contractor",
+  "office",
+  "other",
+];
 
 export const BUG_SEVERITY_LABEL: Record<BugSeverity, string> = {
   low: "Low",
