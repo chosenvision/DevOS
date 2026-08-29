@@ -63,7 +63,10 @@ export async function getOrCreateDefaultOrg(
     .single();
 
   if (orgError || !org) {
-    throw new Error(`Could not create your organization: ${orgError?.message ?? "unknown error"}`);
+    const detail = [orgError?.code, orgError?.message, orgError?.details, orgError?.hint]
+      .filter(Boolean)
+      .join(" | ");
+    throw new Error(`Could not create your organization: ${detail || "unknown error"}`);
   }
 
   const { error: memberError } = await supabase.from("organization_members").insert({
