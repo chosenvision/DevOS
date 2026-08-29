@@ -84,7 +84,16 @@ export async function getOrCreateDefaultOrg(
     const detail = [orgError?.code, orgError?.message, orgError?.details, orgError?.hint]
       .filter(Boolean)
       .join(" | ");
-    throw new Error(`Could not create your organization: ${detail || "unknown error"}`);
+    // Temporary diagnostic: debug_whoami() is a `security invoker` SQL
+    // function returning auth.uid() as Postgres sees it for this exact
+    // request, compared against the id supabase-js's own getUser() just
+    // verified — this pins down whether the two actually match. Remove
+    // once resolved (see services/queries/organizations.ts history).
+    const { data: whoami, error: whoamiError } = await supabase.rpc("debug_whoami");
+    throw new Error(
+      `Could not create your organization: ${detail || "unknown error"} ` +
+        `[app user=${verifiedUser.id} db auth.uid()=${whoami ?? "null"}${whoamiError ? ` (rpc error: ${whoamiError.message})` : ""}]`
+    );
   }
 
   const { error: memberError } = await supabase.from("organization_members").insert({
