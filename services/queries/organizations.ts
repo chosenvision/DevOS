@@ -53,18 +53,6 @@ export async function getOrCreateDefaultOrg(
   const existing = await getUserOrganizations(supabase, userId);
   if (existing.length > 0) return existing[0];
 
-  const name = `${displayName}'s Business`;
-  const slug = await uniqueOrgSlug(supabase, name);
-
-  // The organizations INSERT policy checks owner_id = auth.uid(), evaluated
-  // by Postgres against the JWT actually forwarded on this request — not
-  // against whatever `userId` this function was called with. requireUser()
-  // deliberately uses the cheap, locally-decoded getSession() (see its own
-  // comment), which is fine for reads but has caused exactly this insert to
-  // be rejected with "auth.uid() didn't match" while reads quietly returned
-  // empty results instead of erroring. Re-verify with getUser() (a real
-  // round-trip to the Auth server) right before the one INSERT here that
-  // actually depends on auth.uid() matching a specific value.
   const {
     data: { user: verifiedUser },
     error: verifyError,
@@ -74,30 +62,32 @@ export async function getOrCreateDefaultOrg(
     throw new Error(`Could not verify your session to create an organization: ${verifyError?.message ?? "no user"}`);
   }
 
-  const { data: org, error: orgError } = await supabase
-    .from("organizations")
-    .insert({ name, slug, owner_id: verifiedUser.id })
-    .select("*")
-    .single();
+  const name = `${displayName}'s Business`;
+  const slug = await uniqueOrgSlug(supabase, name);
+  // Generated here rather than left to the column's gen_random_uuid()
+  // default so we have it without asking Postgres to hand the row back
+  // (see the comment on the insert below for why that matters).
+  const id = crypto.randomUUID();
 
-  if (orgError || !org) {
-    const detail = [orgError?.code, orgError?.message, orgError?.details, orgError?.hint]
-      .filter(Boolean)
-      .join(" | ");
-    // Temporary diagnostic: debug_whoami() is a `security invoker` SQL
-    // function returning auth.uid() as Postgres sees it for this exact
-    // request, compared against the id supabase-js's own getUser() just
-    // verified — this pins down whether the two actually match. Remove
-    // once resolved (see services/queries/organizations.ts history).
-    const { data: whoami, error: whoamiError } = await supabase.rpc("debug_whoami");
-    throw new Error(
-      `Could not create your organization: ${detail || "unknown error"} ` +
-        `[app user=${verifiedUser.id} db auth.uid()=${whoami ?? "null"}${whoamiError ? ` (rpc error: ${whoamiError.message})` : ""}]`
-    );
+  // No .select() here on purpose. Chaining one turns this into an
+  // `INSERT ... RETURNING *`, and RETURNING under RLS re-checks the
+  // table's SELECT policies on the row before handing it back — not just
+  // the INSERT policy that already passed. organizations' SELECT policies
+  // (is_org_member(), the invited-by-email one) both require an
+  // organization_members row that can't exist yet for a brand-new org, so
+  // that re-check always fails and Postgres reports it with the exact same
+  // "violates row-level security policy" wording as a rejected INSERT —
+  // which is what made this look like a WITH CHECK failure until traced
+  // down. Insert without asking for the row back, then build the
+  // OrgMembership from values we already have.
+  const { error: orgError } = await supabase.from("organizations").insert({ id, name, slug, owner_id: verifiedUser.id });
+
+  if (orgError) {
+    throw new Error(`Could not create your organization: ${orgError.message}`);
   }
 
   const { error: memberError } = await supabase.from("organization_members").insert({
-    organization_id: org.id,
+    organization_id: id,
     user_id: verifiedUser.id,
     role: "owner",
     status: "active",
@@ -108,7 +98,10 @@ export async function getOrCreateDefaultOrg(
     throw new Error(`Could not set up your organization membership: ${memberError.message}`);
   }
 
-  return { organization: org as Organization, role: "owner" };
+  const now = new Date().toISOString();
+  const organization: Organization = { id, name, slug, owner_id: verifiedUser.id, plan: "free", created_at: now, updated_at: now };
+
+  return { organization, role: "owner" };
 }
 
 /**

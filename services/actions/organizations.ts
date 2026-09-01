@@ -34,19 +34,24 @@ export async function createOrganization(_prevState: ActionState, formData: Form
   }
 
   const slug = await uniqueOrgSlug(supabase, parsed.data.name);
+  const id = crypto.randomUUID();
 
-  const { data: org, error: orgError } = await supabase
+  // No .select() on this insert — see the matching comment in
+  // services/queries/organizations.ts:getOrCreateDefaultOrg. Chaining one
+  // turns this into INSERT ... RETURNING, which re-checks organizations'
+  // SELECT policies on the new row; those require an organization_members
+  // row that doesn't exist until the insert right below this one, so the
+  // RETURNING re-check fails RLS even though the INSERT itself is allowed.
+  const { error: orgError } = await supabase
     .from("organizations")
-    .insert({ name: parsed.data.name, slug, owner_id: user.id })
-    .select("id")
-    .single();
+    .insert({ id, name: parsed.data.name, slug, owner_id: user.id });
 
-  if (orgError || !org) {
-    return { error: orgError?.message ?? "Could not create organization." };
+  if (orgError) {
+    return { error: orgError.message };
   }
 
   const { error: memberError } = await supabase.from("organization_members").insert({
-    organization_id: org.id,
+    organization_id: id,
     user_id: user.id,
     role: "owner",
     status: "active",
